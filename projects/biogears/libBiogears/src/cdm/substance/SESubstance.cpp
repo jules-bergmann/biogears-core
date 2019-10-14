@@ -106,40 +106,8 @@ SESubstance::~SESubstance()
 //-----------------------------------------------------------------------------
 void SESubstance::Clear()
 {
-<<<<<<< HEAD
-  m_Name = "";
-  m_State = (CDM::enumSubstanceState::value)-1;
-  m_Classification = (CDM::enumSubstanceClass::value)-1;
-  SAFE_DELETE(m_Density);
-  SAFE_DELETE(m_MolarMass);
-
-  SAFE_DELETE(m_MaximumDiffusionFlux);
-  SAFE_DELETE(m_MichaelisCoefficient);
-  SAFE_DELETE(m_MembraneResistance);
-  SAFE_DELETE(m_AreaUnderCurve);
-  SAFE_DELETE(m_BloodConcentration);
-  SAFE_DELETE(m_EffectSiteConcentration);
-  SAFE_DELETE(m_MassInBody);
-  SAFE_DELETE(m_MassInBlood);
-  SAFE_DELETE(m_MassInTissue);
-  SAFE_DELETE(m_PlasmaConcentration);
-  SAFE_DELETE(m_SystemicMassCleared);
-  SAFE_DELETE(m_TissueConcentration);
-
-  SAFE_DELETE(m_AlveolarTransfer);
-  SAFE_DELETE(m_DiffusingCapacity);
-  SAFE_DELETE(m_EndTidalFraction);
-  SAFE_DELETE(m_EndTidalPressure);
-  SAFE_DELETE(m_SolubilityCoefficient);
-  SAFE_DELETE(m_RelativeDiffusionCoefficient);
-
-  SAFE_DELETE(m_Aerosolization);
-  SAFE_DELETE(m_Clearance);
-  SAFE_DELETE(m_PK);
-  SAFE_DELETE(m_PD);
-=======
-  m_impl = std::make_unique<Implementation>(m_impl->Aerosolization.GetLogger());
->>>>>>> f/sawhite-substance -- Refactor of SESubstance using PIMPL to work towards breaking up SESubstanceData from SESubstanceState.  Also would like to use this as the proof of concept for the new inflate/deflate methods
+  auto logger = m_impl->Aerosolization.GetLogger();
+  m_impl = std::make_unique<Implementation>(logger);
 }
 //-----------------------------------------------------------------------------
 const SEScalar* SESubstance::GetScalar(const char* name)
@@ -207,9 +175,9 @@ const SEScalar* SESubstance::GetScalar(const std::string& name)
       return GetPD().GetScalar(prop);
     }
   }
-
   return nullptr;
 }
+
 //-----------------------------------------------------------------------------
 bool SESubstance::Load(const CDM::SubstanceData& in)
 {
@@ -229,9 +197,8 @@ bool SESubstance::Load(const CDM::SubstanceData& in)
   if (in.MolarMass().present()) {
     GetMolarMass().Load(in.MolarMass().get());
   } else {
-    Error("WHAT THE HELL " + in.Name());
+    Error("Load Error for substance " + in.Name());
   }
-
   if (in.MaximumDiffusionFlux().present()) {
     GetMaximumDiffusionFlux().Load(in.MaximumDiffusionFlux().get());
   }
@@ -654,7 +621,7 @@ SEScalarMassPerVolume& SESubstance::GetEffectSiteConcentration()
 double SESubstance::GetEffectSiteConcentration(const MassPerVolumeUnit& unit) const noexcept
 {
   auto& impl = *m_impl;
-  return (impl.EffectSiteConcentration.IsValid()) ? impl.EffectSiteConcentration.GetValue(unit) : SEScalar::NaN;
+  return impl.EffectSiteConcentration.GetValue(unit);
 }
 //-----------------------------------------------------------------------------
 bool SESubstance::HasMassInBody() const
