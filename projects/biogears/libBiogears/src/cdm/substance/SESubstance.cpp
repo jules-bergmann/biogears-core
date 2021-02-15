@@ -43,7 +43,6 @@ struct SESubstance::Implementation {
   SEScalar MichaelisCoefficient;
   SEScalarElectricResistance MembraneResistance;
 
-  CDM::enumBloodTypeABO Antigen;
   SESubstanceAerosolization Aerosolization;
   SEScalarTimeMassPerVolume AreaUnderCurve;
   SEScalarMassPerVolume BloodConcentration;
@@ -113,7 +112,7 @@ void SESubstance::Clear()
 const SEScalar* SESubstance::GetScalar(const char* name)
 {
   auto& impl = *m_impl;
-  return GetScalar(std::string{ name });
+  return GetScalar(std::string { name });
 }
 //-----------------------------------------------------------------------------
 const SEScalar* SESubstance::GetScalar(const std::string& name)
@@ -207,14 +206,12 @@ bool SESubstance::Load(const CDM::SubstanceData& in)
   }
   if (in.MembraneResistance().present()) {
     GetMembraneResistance().Load(in.MembraneResistance().get());
-  if (in.AreaUnderCurve().present()) {
-      GetAreaUnderCurve().Load(in.AreaUnderCurve().get());
   }
-  if (in.Antigen().present()) {
-      impl.Antigen = in.Antigen().get();
+  if (in.AreaUnderCurve().present()) {
+    GetAreaUnderCurve().Load(in.AreaUnderCurve().get());
   }
   if (in.BloodConcentration().present()) {
-      GetBloodConcentration().Load(in.BloodConcentration().get());
+    GetBloodConcentration().Load(in.BloodConcentration().get());
   }
   if (in.EffectSiteConcentration().present()) {
     GetEffectSiteConcentration().Load(in.EffectSiteConcentration().get());
@@ -270,7 +267,8 @@ bool SESubstance::Load(const CDM::SubstanceData& in)
     impl.has_pd = GetPD().Load(in.Pharmacodynamics().get());
   }
 
-  if (HasClearance() && HasPK() && GetPK().HasPhysicochemicals() && GetClearance().HasFractionUnboundInPlasma() && !GetClearance().GetFractionUnboundInPlasma().Equals(GetPK().GetPhysicochemicals().GetFractionUnboundInPlasma())) {
+  if (HasClearance() && HasPK() && GetPK().HasPhysicochemicals() && GetClearance().HasFractionUnboundInPlasma()
+      && !GetClearance().GetFractionUnboundInPlasma().Equals(GetPK().GetPhysicochemicals().GetFractionUnboundInPlasma())) {
     Fatal("Multiple FractionUnboundInPlasma values specified, but not the same. These must match at this time.");
   }
 
@@ -317,9 +315,6 @@ void SESubstance::Unload(CDM::SubstanceData& data) const
   if (HasAreaUnderCurve()) {
     data.AreaUnderCurve(std::unique_ptr<CDM::ScalarTimeMassPerVolumeData>(impl.AreaUnderCurve.Unload()));
   }
-  if (HasAntigen()) {
-    data.Antigen(impl.Antigen);
-  }
   if (HasBloodConcentration()) {
     data.BloodConcentration(std::unique_ptr<CDM::ScalarMassPerVolumeData>(impl.BloodConcentration.Unload()));
   }
@@ -362,7 +357,6 @@ void SESubstance::Unload(CDM::SubstanceData& data) const
   if (HasRelativeDiffusionCoefficient()) {
     data.RelativeDiffusionCoefficient(std::unique_ptr<CDM::ScalarData>(impl.RelativeDiffusionCoefficient.Unload()));
   }
-
   if (HasAerosolization()) {
     data.Aerosolization(std::unique_ptr<CDM::SubstanceAerosolizationData>(impl.Aerosolization.Unload()));
   }
@@ -838,30 +832,6 @@ double SESubstance::GetSolubilityCoefficient(const InversePressureUnit& unit) co
 {
   auto& impl = *m_impl;
   return (impl.SolubilityCoefficient.IsValid()) ? impl.SolubilityCoefficient.GetValue(unit) : SEScalar::NaN;
-}
-//-----------------------------------------------------------------------------
-CDM::enumBloodTypeABO::value SESubstance::GetAntigen() const
-{
-  auto& impl = *m_impl;
-  return impl.Antigen;
-}
-//-----------------------------------------------------------------------------
-void SESubstance::SetAntigen(CDM::enumBloodTypeABO::value bloodAntigen)
-{
-  auto& impl = *m_impl;
-  impl.Antigen = bloodAntigen;
-}
-//-----------------------------------------------------------------------------
-bool SESubstance::HasAntigen() const
-{
-  auto& impl = *m_impl;
-  return impl.Antigen == ((CDM::enumBloodTypeABO::value)-1) ? false : true;
-}
-//-----------------------------------------------------------------------------
-void SESubstance::InvalidateAntigen()
-{
-  auto& impl = *m_impl;
-  impl.Antigen = (CDM::enumBloodTypeABO::value)-1;
 }
 //-----------------------------------------------------------------------------
 bool SESubstance::HasClearance() const

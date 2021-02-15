@@ -105,12 +105,6 @@ public:
   virtual SEScalarElectricResistance& GetMembraneResistance();
   virtual double GetMembraneResistance(const ElectricResistanceUnit& unit) const noexcept;
 
-  // Cellular and Blood
-  CDM::enumBloodTypeABO::value GetAntigen() const;
-  void SetAntigen(CDM::enumBloodTypeABO::value bloodAntigen);
-  bool HasAntigen() const;
-  void InvalidateAntigen();
-
   // Liquid-ish
   virtual bool HasAerosolization() const;
   virtual SESubstanceAerosolization& GetAerosolization();
