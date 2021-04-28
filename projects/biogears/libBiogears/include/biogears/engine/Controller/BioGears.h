@@ -45,13 +45,15 @@ namespace biogears {
 class SEPatientAssessment;
 class BioGearsScenarioExec;
 
-enum class EngineState { NotReady = 0,
-                         Initialization,
-                         InitialStabilization,
-                         AtInitialStableState,
-                         SecondaryStabilization,
-                         AtSecondaryStableState,
-                         Active };
+enum class EngineState {
+  NotReady = 0,
+  Initialization,
+  InitialStabilization,
+  AtInitialStableState,
+  SecondaryStabilization,
+  AtSecondaryStableState,
+  Active
+};
 
 class ECG;
 class DataTrack;
@@ -175,6 +177,7 @@ public:
 protected:
   void SetupCardiovascular();
   void SetupCerebral();
+  void SetupCerebralAdvanced();
   void SetupRenal();
   void SetupTissue();
   void SetupGastrointestinal();

@@ -167,7 +167,7 @@ bool BioGears::Initialize(const PhysiologyEngineConfiguration* config)
     std::string stableDir = "./stable/";
     MakeDirectory(stableDir);
     CDM::PatientData* pData = m_Patient->Unload();
-    pData->contentVersion(branded_version_string());
+    pData->contentVersion(BGE::Version);
     // Write out the stable patient state
     std::ofstream stream(stableDir + m_Patient->GetName() + ".xml");
     // Write out the xml file
@@ -273,7 +273,8 @@ bool BioGears::SetupPatient()
   if (age_yr < ageMin_yr) {
     m_Logger->Error(std::stringstream() << "Patient age of " << age_yr << " years is too young. We do not model pediatrics. Minimum age allowed is " << ageMin_yr << " years.");
     err = true;
-  } else if (age_yr > ageMax_yr) {
+  }
+  else if (age_yr > ageMax_yr) {
     m_Logger->Error(std::stringstream() << "Patient age of " << age_yr << " years is too old. We do not model geriatrics. Maximum age allowed is " << ageMax_yr << " years.");
     err = true;
   }
@@ -294,13 +295,13 @@ bool BioGears::SetupPatient()
 
   //Sleep Amount ---------------------------------------------------------------
   double sleepAmount_hr = 8.0;
-  if(!m_Patient->HasSleepAmount()) {
+  if (!m_Patient->HasSleepAmount()) {
     m_Patient->GetSleepAmount().SetValue(sleepAmount_hr, TimeUnit::hr);
-    m_Logger->Info(std::stringstream()<< "No patient sleep amount set " << sleepAmount_hr << " hr being used.");
+    m_Logger->Info(std::stringstream() << "No patient sleep amount set " << sleepAmount_hr << " hr being used.");
   }
 
   //additional checks to ensure non-zero and negative values: 
-  if(m_Patient->GetSleepAmount().GetValue(TimeUnit::hr) < 0 || m_Patient->GetSleepAmount().GetValue(TimeUnit::hr) == 0) {
+  if (m_Patient->GetSleepAmount().GetValue(TimeUnit::hr) < 0 || m_Patient->GetSleepAmount().GetValue(TimeUnit::hr) == 0) {
     m_Patient->GetSleepAmount().SetValue(sleepAmount_hr, TimeUnit::hr);
     m_Logger->Info(std::stringstream() << "Sleep amount must be a non-zero positive number, setting to default: " << sleepAmount_hr << " hr being used.");
   }
@@ -338,7 +339,8 @@ bool BioGears::SetupPatient()
   }
   if (height_cm < heightMin_cm) {
     m_Logger->Warning(std::stringstream() << "Patient height of " << height_cm << " cm is outside of typical ranges - below 3rd percentile (" << heightMax_cm << " cm). No guarantees of model validity.");
-  } else if (height_cm > heightMax_cm) {
+  }
+  else if (height_cm > heightMax_cm) {
     m_Logger->Warning(std::stringstream() << "Patient height of " << height_cm << " cm is outside of typical ranges - above 97th percentile(" << heightMin_cm << " cm). No guarantees of model validity.");
   }
 
@@ -403,7 +405,8 @@ bool BioGears::SetupPatient()
   if (fatFraction > fatFractionMax) {
     m_Logger->Error(std::stringstream() << "Patient body fat fraction of " << fatFraction << " is too high. Obese patients must be modeled by adding/using a condition. Maximum body fat fraction allowed is " << fatFractionMax << ".");
     err = true;
-  } else if (fatFraction < fatFractionMin) {
+  }
+  else if (fatFraction < fatFractionMin) {
     m_Logger->Error(std::stringstream() << "Patient body fat fraction  " << fatFraction << " is too low. Patients must have essential fat. Minimum body fat fraction allowed is " << fatFractionMin << ".");
     err = true;
   }
@@ -426,7 +429,8 @@ bool BioGears::SetupPatient()
 
   if (m_Patient->GetGender() == CDM::enumSex::Female) {
     m_Patient->GetMuscleMass().SetValue(weight_kg * .306, MassUnit::kg);
-  } else {
+  }
+  else {
     m_Patient->GetMuscleMass().SetValue(weight_kg * .384, MassUnit::kg);
   }
 
@@ -462,14 +466,17 @@ bool BioGears::SetupPatient()
   if (heartRateTachycardia_bpm < heartRate_bpm) {
     if (heartRate_bpm <= heartRateMax_bpm) {
       m_Logger->Info(std::stringstream() << "Patient heart rate baseline of " << heartRate_bpm << " bpm is tachycardic");
-    } else {
+    }
+    else {
       m_Patient->GetHeartRateBaseline().SetValue(heartRateMax_bpm, FrequencyUnit::Per_min);
       m_Logger->Info(std::stringstream() << "Patient heart rate baseline of " << heartRate_bpm << " exceeds maximum stable value of " << heartRateMax_bpm << " bpm.  Resetting heart rate baseline to " << heartRateMax_bpm);
     }
-  } else if (heartRate_bpm < heartRateBradycardia_bpm) {
+  }
+  else if (heartRate_bpm < heartRateBradycardia_bpm) {
     if (heartRateMin_bpm <= heartRate_bpm) {
       m_Logger->Info(std::stringstream() << "Patient heart rate baseline of " << heartRate_bpm << " bpm is bradycardic");
-    } else {
+    }
+    else {
       m_Patient->GetHeartRateBaseline().SetValue(heartRateMin_bpm, FrequencyUnit::Per_min);
       m_Logger->Info(std::stringstream() << "Patient heart rate baseline of " << heartRate_bpm << " exceeds minimum stable value of " << heartRateMin_bpm << " bpm.  Resetting heart rate baseline to " << heartRateMin_bpm);
     }
@@ -480,7 +487,8 @@ bool BioGears::SetupPatient()
   if (!m_Patient->HasHeartRateMaximum()) {
     m_Patient->GetHeartRateMaximum().SetValue(computedHeartRateMaximum_bpm, FrequencyUnit::Per_min);
     m_Logger->Info(std::stringstream() << "No patient heart rate maximum set. Using a computed value of " << computedHeartRateMaximum_bpm << " bpm.");
-  } else {
+  }
+  else {
     if (m_Patient->GetHeartRateMaximum(FrequencyUnit::Per_min) < heartRate_bpm) {
       m_Logger->Error(std::stringstream() << "Patient heart rate maximum must be greater than the baseline heart rate.");
       err = true;
@@ -515,7 +523,8 @@ bool BioGears::SetupPatient()
   if (systolic_mmHg < systolicMin_mmHg) {
     m_Logger->Error(std::stringstream() << "Patient systolic pressure baseline of " << systolic_mmHg << " mmHg is too low. Hypotension must be modeled by adding/using a condition. Minimum systolic pressure baseline allowed is " << systolicMin_mmHg << " mmHg.");
     err = true;
-  } else if (systolic_mmHg > systolicMax_mmHg) {
+  }
+  else if (systolic_mmHg > systolicMax_mmHg) {
     m_Logger->Error(std::stringstream() << "Patient systolic pressure baseline of " << systolic_mmHg << " mmHg is too high. Hypertension must be modeled by adding/using a condition. Maximum systolic pressure baseline allowed is " << systolicMax_mmHg << " mmHg.");
     err = true;
   }
@@ -529,7 +538,8 @@ bool BioGears::SetupPatient()
   if (diastolic_mmHg < diastolicMin_mmHg) {
     m_Logger->Error(std::stringstream() << "Patient diastolic pressure baseline of " << diastolic_mmHg << " mmHg is too low. Hypotension must be modeled by adding/using a condition. Minimum diastolic pressure baseline allowed is " << diastolicMin_mmHg << " mmHg.");
     err = true;
-  } else if (diastolic_mmHg > diastolicMax_mmHg) {
+  }
+  else if (diastolic_mmHg > diastolicMax_mmHg) {
     m_Logger->Error(std::stringstream() << "Patient diastolic pressure baseline of " << diastolic_mmHg << " mmHg is too high. Hypertension must be modeled by adding/using a condition. Maximum diastolic pressure baseline allowed is " << diastolicMax_mmHg << " mmHg.");
     err = true;
   }
@@ -578,7 +588,8 @@ bool BioGears::SetupPatient()
   if (bloodVolume_mL < bloodVolumeMin_mL) {
     m_Logger->Error(std::stringstream() << "Patient blood volume baseline of " << bloodVolume_mL << " mL is too low. Hypovolemia must be modeled by adding/using a condition. Minimum blood volume baseline allowed is " << bloodVolumeMin_mL << " mL.");
     err = true;
-  } else if (bloodVolume_mL > bloodVolumeMax_mL) {
+  }
+  else if (bloodVolume_mL > bloodVolumeMax_mL) {
     m_Logger->Error(std::stringstream() << "Patient blood volume baseline of " << bloodVolume_mL << " mL is too high. Excessive volume must be modeled by adding/using a condition. Maximum blood volume baseline allowed is " << bloodVolumeMax_mL << " mL.");
     err = true;
   }
@@ -600,7 +611,8 @@ bool BioGears::SetupPatient()
   if (respirationRate_bpm > respirationRateMax_bpm) {
     m_Logger->Error(std::stringstream() << "Patient respiration rate baseline of " << respirationRate_bpm << " bpm is too high. Non-healthy values must be modeled by adding/using a condition. Maximum respiration rate baseline allowed is " << respirationRateMax_bpm << " bpm.");
     err = true;
-  } else if (respirationRate_bpm < respirationRateMin_bpm) {
+  }
+  else if (respirationRate_bpm < respirationRateMin_bpm) {
     m_Logger->Error(std::stringstream() << "Patient respiration rate baseline of " << respirationRate_bpm << " bpm is too low. Non-healthy values must be modeled by adding/using a condition. Minimum respiration rate baseline allowed is " << respirationRateMin_bpm << " bpm.");
     err = true;
   }
@@ -619,7 +631,8 @@ bool BioGears::SetupPatient()
   if (rightLungRatio > rightLungRatioMax) {
     m_Logger->Error(std::stringstream() << "Patient right lung ratio of " << rightLungRatio << " is too high. Non-healthy values must be modeled by adding/using a condition. Maximum right lung ratio allowed is " << rightLungRatioMax << ".");
     err = true;
-  } else if (rightLungRatio < rightLungRatioMin) {
+  }
+  else if (rightLungRatio < rightLungRatioMin) {
     m_Logger->Error(std::stringstream() << "Patient right lung ratio of " << rightLungRatio << " is too low. Non-healthy values must be modeled by adding/using a condition. Minimum right lung ratio allowed is " << rightLungRatioMin << ".");
     err = true;
   }
@@ -787,13 +800,16 @@ bool BioGears::SetupPatient()
   if (m_Patient->GetGender() == CDM::enumSex::Male) {
     if (age_yr >= 60.) {
       computedMaxWorkRate_W = ((-24.3 * 60.) + 2070.);
-    } else {
+    }
+    else {
       computedMaxWorkRate_W = ((-24.3 * age_yr) + 2070.);
     }
-  } else {
+  }
+  else {
     if (age_yr >= 60.) {
       computedMaxWorkRate_W = ((-20.7 * 60.) + 1673.);
-    } else {
+    }
+    else {
       computedMaxWorkRate_W = ((-20.7 * age_yr) + 1673.);
     }
   }
@@ -1010,7 +1026,7 @@ bool BioGears::CreateCircuitsAndCompartments()
 
   SetupCardiovascular();
   if (m_Config->IsCerebralEnabled()) {
-    SetupCerebral();
+    SetupCerebralAdvanced();
   }
   if (m_Config->IsRenalEnabled()) {
     SetupRenal();
@@ -2172,6 +2188,1060 @@ void BioGears::SetupCardiovascular()
   gCombinedCardiovascular.AddGraph(gCardiovascular);
   gCombinedCardiovascular.StateChange();
 }
+
+void BioGears::SetupCerebralAdvanced()
+{
+
+  m_Logger->Info("Setting up AdvancedCerebral");
+
+  SEFluidCircuit& CerebralCircuit = m_Circuits->GetCerebralCircuit();
+  SEFluidCircuit& CardioCircuit = m_Circuits->GetCardiovascularCircuit();
+
+  //--------------------Define target circuit values---------------------------------------
+    //Get target flow from cardiovascular circuit--probably seems circuitous but I'd rather this function know if the target in SetupCardiovascular changes
+  double cardioBrain1Pressure = CardioCircuit.GetNode(BGE::CardiovascularNode::Brain1)->GetPressure(PressureUnit::mmHg);
+  double cardioAorta1Pressure = CardioCircuit.GetNode(BGE::CardiovascularNode::Aorta1)->GetPressure(PressureUnit::mmHg);
+  double cardioAortaToBrainResistance = CardioCircuit.GetPath(BGE::CardiovascularPath::Aorta1ToBrain1)->GetResistanceBaseline(FlowResistanceUnit::mmHg_s_Per_mL);
+
+  double cerebralTargetFlow_mL_Per_s = (cardioAorta1Pressure - cardioBrain1Pressure) / cardioAortaToBrainResistance;
+  double cerebralTargetVolume_mL = CardioCircuit.GetNode(BGE::CardiovascularNode::Brain1)->GetVolumeBaseline(VolumeUnit::mL);
+  //Remaining parameters derived from Lu2003Cerebral
+  //Target cerebral spinal fluid flow--same target for both formation and absorption since net = 0 at steady state
+  double cerebroSpinalFluidFlow_mL_Per_s = Convert(560.0, VolumePerTimeUnit::mL_Per_day, VolumePerTimeUnit::mL_Per_s);
+  //Target volumes--Lu assumes 100 mL of brain vasculature disctributed 20/20/60 (discounting neck), so scale reported values by BioGears target
+  //Factor in volume modifier applied to vascular nodes in Setup Cardiovascular since this will affect the stabilized pressure after tuning
+  double VolumeModifierBrain = 0.998011 * 1.038409;
+
+
+  /*
+  // Previous model's volumes are here for reference
+  double neckArteriesVolume_mL = 15.0 * VolumeModifierBrain;
+  double cerebralArteriesVolume_mL = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain;
+  double cerebralCapillariesVolume_mL = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain;
+  double cerebralVeinsVolume_mL = 0.6 * cerebralTargetVolume_mL * VolumeModifierBrain;
+  double neckVeinsVolume_mL = 35.0 * VolumeModifierBrain;
+  double intracranialVolume_mL = 150.0 * VolumeModifierBrain;
+  //
+  */
+
+  // literature values of volume are forthcoming. Current assignment assumes that each neck artery carries 1/4 of the neckArteriesVolume_mL in the previous model. Current assignment also assumes that the volume of each vasculature component (artery, capillaries, vein) in each vascular territory is 1/6 that of the generic vasculature component from the previous model.
+
+// LEFT COROTID
+  double leftCorotidVolume_mL = 15.0 * VolumeModifierBrain * 0.25;
+  double leftAnteriorArteriesVolume_mL = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double leftAnteriorCapillariesVolume_mL = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double leftAnteriorVeinsVolume_mL = 0.6 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double leftMedialArteriesVolume_mL = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double leftMedialCapillariesVolume_mL = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double leftMedialVeinsVolume_mL = 0.6 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  // RIGHT COROTID
+  double rightCorotidVolume_mL = 15.0 * VolumeModifierBrain * 0.25;
+  double rightAnteriorArteriesVolume_mL = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double rightAnteriorCapillariesVolume_mL = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double rightAnteriorVeinsVolume_mL = 0.6 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double rightMedialArteriesVolume_mL = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double rightMedialCapillariesVolume_mL = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double rightMedialVeinsVolume_mL = 0.6 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  // LEFT BASILAR
+  double leftBasilarVolume_mL = 15.0 * VolumeModifierBrain * 0.25;
+  double leftPosteriorArteriesVolume_mL = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double leftPosteriorCapillariesVolume_mL = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double leftPosteriorVeinsVolume_mL = 0.6 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double leftBasilarToLeftCorotidVolume = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain; //unused at the moment, potentially unnecessary, carries negligible volume
+// RIGHT BASILAR
+  double rightBasilarVolume_mL = 15.0 * VolumeModifierBrain * 0.25;
+  double rightPosteriorArteriesVolume_mL = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double rightPosteriorCapillariesVolume_mL = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double rightPosteriorVeinsVolume_mL = 0.6 * cerebralTargetVolume_mL * VolumeModifierBrain * 1.0 / 6.0;
+  double rightBasilarToRightCorotidVolume = 0.2 * cerebralTargetVolume_mL * VolumeModifierBrain; //unused at the moment, potentially unnecessary, carries negligible volume
+// THE REST
+  double neckVeinsVolume_mL = 35.0 * VolumeModifierBrain;
+  double intracranialVolume_mL = 150.0 * VolumeModifierBrain;
+
+
+  //---Target pressures---
+  // literature values of pressures are forthcoming. Current assignment for each location follows generic assignments in previous model.
+// LEFT COROTID
+  double leftCorotidPressure_mmHg = 85.0; //This pressure is below enforced patient systolic baseline of 90mmHg, so we can safely hard-code this value
+  // LEFT ANTERIOR
+  double leftAnteriorArteries1Pressure_mmHg = 65.0;
+  double leftAnteriorArteries2Pressure_mmHg = leftAnteriorArteries1Pressure_mmHg;
+  double leftAnteriorCapillariesPressure_mmHg = 25.0;
+  double leftAnteriorVeins1Pressure_mmHg = 14.0;
+  double leftAnteriorVeins2Pressure_mmHg = 7.5;//Assumed--value should be < ICP (10.0) but greater than vena cava pressure (~4)
+  // LEFT MEDIAL
+  double leftMedialArteries1Pressure_mmHg = 65.0;
+  double leftMedialArteries2Pressure_mmHg = leftAnteriorArteries1Pressure_mmHg;
+  double leftMedialCapillariesPressure_mmHg = 25.0;
+  double leftMedialVeins1Pressure_mmHg = 14.0;
+  double leftMedialVeins2Pressure_mmHg = 7.5;
+
+  // RIGHT COROTID
+  double rightCorotidPressure_mmHg = 85.0;
+  // RIGHT ANTERIOR
+  double rightAnteriorArteries1Pressure_mmHg = 65.0;
+  double rightAnteriorArteries2Pressure_mmHg = leftAnteriorArteries1Pressure_mmHg;
+  double rightAnteriorCapillariesPressure_mmHg = 25.0;
+  double rightAnteriorVeins1Pressure_mmHg = 14.0;
+  double rightAnteriorVeins2Pressure_mmHg = 7.5;
+  // RIGHT MEDIAL
+  double rightMedialArteries1Pressure_mmHg = 65.0;
+  double rightMedialArteries2Pressure_mmHg = leftAnteriorArteries1Pressure_mmHg;
+  double rightMedialCapillariesPressure_mmHg = 25.0;
+  double rightMedialVeins1Pressure_mmHg = 14.0;
+  double rightMedialVeins2Pressure_mmHg = 7.5;
+
+  // LEFT BASILAR
+  double leftBasilarPressure_mmHg = 86.0; // I'm gonna increase this slightly over the left corotid pressure (to give a small resistance)
+  double leftPosteriorArteries1Pressure_mmHg = 65.0;
+  double leftPosteriorArteries2Pressure_mmHg = leftAnteriorArteries1Pressure_mmHg;
+  double leftPosteriorCapillariesPressure_mmHg = 25.0;
+  double leftPosteriorVeins1Pressure_mmHg = 14.0;
+  double leftPosteriorVeins2Pressure_mmHg = 7.5;
+
+  // RIGHT BASILAR
+  double rightBasilarPressure_mmHg = 86.0; // I'm gonna increase this slightly over the right corotid pressure (to give a small resistance)
+  double rightPosteriorArteries1Pressure_mmHg = 65.0;
+  double rightPosteriorArteries2Pressure_mmHg = leftAnteriorArteries1Pressure_mmHg;
+  double rightPosteriorCapillariesPressure_mmHg = 25.0;
+  double rightPosteriorVeins1Pressure_mmHg = 14.0;
+  double rightPosteriorVeins2Pressure_mmHg = 7.5;
+
+  double neckVeinsPressure_mmHg = 7.5;
+  double intracranialPressure_mmHg = 15.0;
+
+
+  //---Derive restistance elements---
+// literature values of target flows for each vascular territory are forthcoming. Vascular flow for each territory is 1/6 of cerebralTargetFlow_mL_Per_s from previous model.
+// LEFT COROTID
+  double aorta1ToLeftCorotidResitance_mmHg_s_Per_mL = (CardioCircuit.GetNode(BGE::CardiovascularNode::Aorta1)->GetPressure(PressureUnit::mmHg) - leftCorotidPressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 0.25);
+  //LEFT ANTERIOR
+  double leftCorotidToLeftAnteriorArteries1Resistance_mmHg_s_Per_mL = (leftCorotidPressure_mmHg - leftAnteriorArteries1Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double leftAnteriorArteries2ToLeftAnteriorCapillariesResistance_mmHg_s_Per_mL = (leftAnteriorArteries2Pressure_mmHg - leftAnteriorCapillariesPressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double leftAnteriorCapillariesToLeftAnteriorVeins1Resistance_mmHg_s_Per_mL = (leftAnteriorCapillariesPressure_mmHg - leftAnteriorVeins1Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double leftAnteriorVeins1ToLeftAnteriorVeins2Resistance_mmHg_s_Per_mL = (leftAnteriorVeins1Pressure_mmHg - leftAnteriorVeins2Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double leftAnteriorArteries2ToSpinalFluidResistance_mmHg_s_Per_mL = (leftAnteriorArteries2Pressure_mmHg - intracranialPressure_mmHg) / (cerebroSpinalFluidFlow_mL_Per_s * 1.0 / 6.0);
+  double spinalFluidToLeftAnteriorVeinsCheckResistance_mmHg_s_Per_mL = (intracranialPressure_mmHg - leftAnteriorVeins2Pressure_mmHg) / (cerebroSpinalFluidFlow_mL_Per_s * 1.0 / 6.0);
+  //LEFT MEDIAL
+  double leftCorotidToLeftMedialArteries1Resistance_mmHg_s_Per_mL = (leftCorotidPressure_mmHg - leftMedialArteries1Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double leftMedialArteries2ToLeftMedialCapillariesResistance_mmHg_s_Per_mL = (leftMedialArteries2Pressure_mmHg - leftMedialCapillariesPressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double leftMedialCapillariesToLeftMedialVeins1Resistance_mmHg_s_Per_mL = (leftMedialCapillariesPressure_mmHg - leftMedialVeins1Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double leftMedialVeins1ToLeftMedialVeins2Resistance_mmHg_s_Per_mL = (leftMedialVeins1Pressure_mmHg - leftMedialVeins2Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double leftMedialArteries2ToSpinalFluidResistance_mmHg_s_Per_mL = (leftMedialArteries2Pressure_mmHg - intracranialPressure_mmHg) / (cerebroSpinalFluidFlow_mL_Per_s * 1.0 / 6.0);
+  double spinalFluidToLeftMedialVeinsCheckResistance_mmHg_s_Per_mL = (intracranialPressure_mmHg - leftMedialVeins2Pressure_mmHg) / (cerebroSpinalFluidFlow_mL_Per_s * 1.0 / 6.0);
+
+  // RIGHT COROTID
+  double aorta1ToRightCorotidResitance_mmHg_s_Per_mL = (CardioCircuit.GetNode(BGE::CardiovascularNode::Aorta1)->GetPressure(PressureUnit::mmHg) - rightCorotidPressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 0.25);
+  //RIGHT ANTERIOR
+  double rightCorotidToRightAnteriorArteries1Resistance_mmHg_s_Per_mL = (rightCorotidPressure_mmHg - rightAnteriorArteries1Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double rightAnteriorArteries2ToRightAnteriorCapillariesResistance_mmHg_s_Per_mL = (rightAnteriorArteries2Pressure_mmHg - rightAnteriorCapillariesPressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double rightAnteriorCapillariesToRightAnteriorVeins1Resistance_mmHg_s_Per_mL = (rightAnteriorCapillariesPressure_mmHg - rightAnteriorVeins1Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double rightAnteriorVeins1ToRightAnteriorVeins2Resistance_mmHg_s_Per_mL = (rightAnteriorVeins1Pressure_mmHg - rightAnteriorVeins2Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double rightAnteriorArteries2ToSpinalFluidResistance_mmHg_s_Per_mL = (rightAnteriorArteries2Pressure_mmHg - intracranialPressure_mmHg) / (cerebroSpinalFluidFlow_mL_Per_s * 1.0 / 6.0);
+  double spinalFluidToRightAnteriorVeinsCheckResistance_mmHg_s_Per_mL = (intracranialPressure_mmHg - rightAnteriorVeins2Pressure_mmHg) / (cerebroSpinalFluidFlow_mL_Per_s * 1.0 / 6.0);
+  //RIGHT MEDIAL
+  double rightCorotidToRightMedialArteries1Resistance_mmHg_s_Per_mL = (rightCorotidPressure_mmHg - rightMedialArteries1Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double rightMedialArteries2ToRightMedialCapillariesResistance_mmHg_s_Per_mL = (rightMedialArteries2Pressure_mmHg - rightMedialCapillariesPressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double rightMedialCapillariesToRightMedialVeins1Resistance_mmHg_s_Per_mL = (rightMedialCapillariesPressure_mmHg - rightMedialVeins1Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double rightMedialVeins1ToRightMedialVeins2Resistance_mmHg_s_Per_mL = (rightMedialVeins1Pressure_mmHg - rightMedialVeins2Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double rightMedialArteries2ToSpinalFluidResistance_mmHg_s_Per_mL = (rightMedialArteries2Pressure_mmHg - intracranialPressure_mmHg) / (cerebroSpinalFluidFlow_mL_Per_s * 1.0 / 6.0);
+  double spinalFluidToRightMedialVeinsCheckResistance_mmHg_s_Per_mL = (intracranialPressure_mmHg - rightMedialVeins2Pressure_mmHg) / (cerebroSpinalFluidFlow_mL_Per_s * 1.0 / 6.0);
+
+  // LEFT BASILAR
+  double aorta1ToLeftBasilarResitance_mmHg_s_Per_mL = (CardioCircuit.GetNode(BGE::CardiovascularNode::Aorta1)->GetPressure(PressureUnit::mmHg) - leftBasilarPressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 0.25);
+  double leftBasilarToLeftCorotidResistance_mmHg_s_Per_mL = (leftBasilarPressure_mmHg - leftCorotidPressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  //LEFT POSTERIOR
+  double leftBasilarToLeftPosteriorArteries1Resistance_mmHg_s_Per_mL = (leftBasilarPressure_mmHg - leftPosteriorArteries1Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double leftPosteriorArteries2ToLeftPosteriorCapillariesResistance_mmHg_s_Per_mL = (leftPosteriorArteries2Pressure_mmHg - leftPosteriorCapillariesPressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double leftPosteriorCapillariesToLeftPosteriorVeins1Resistance_mmHg_s_Per_mL = (leftPosteriorCapillariesPressure_mmHg - leftPosteriorVeins1Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double leftPosteriorVeins1ToLeftPosteriorVeins2Resistance_mmHg_s_Per_mL = (leftPosteriorVeins1Pressure_mmHg - leftPosteriorVeins2Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double leftPosteriorArteries2ToSpinalFluidResistance_mmHg_s_Per_mL = (leftPosteriorArteries2Pressure_mmHg - intracranialPressure_mmHg) / (cerebroSpinalFluidFlow_mL_Per_s * 1.0 / 6.0);
+  double spinalFluidToLeftPosteriorVeinsCheckResistance_mmHg_s_Per_mL = (intracranialPressure_mmHg - leftPosteriorVeins2Pressure_mmHg) / (cerebroSpinalFluidFlow_mL_Per_s * 1.0 / 6.0);
+
+  // RIGHT BASILAR
+  double aorta1ToRightBasilarResitance_mmHg_s_Per_mL = (CardioCircuit.GetNode(BGE::CardiovascularNode::Aorta1)->GetPressure(PressureUnit::mmHg) - rightBasilarPressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 0.25);
+  double rightBasilarToRightCorotidResistance_mmHg_s_Per_mL = (rightBasilarPressure_mmHg - rightCorotidPressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  //RIGHT POSTERIOR
+  double rightBasilarToRightPosteriorArteries1Resistance_mmHg_s_Per_mL = (rightBasilarPressure_mmHg - rightPosteriorArteries1Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double rightPosteriorArteries2ToRightPosteriorCapillariesResistance_mmHg_s_Per_mL = (rightPosteriorArteries2Pressure_mmHg - rightPosteriorCapillariesPressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double rightPosteriorCapillariesToRightPosteriorVeins1Resistance_mmHg_s_Per_mL = (rightPosteriorCapillariesPressure_mmHg - rightPosteriorVeins1Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double rightPosteriorVeins1ToRightPosteriorVeins2Resistance_mmHg_s_Per_mL = (rightPosteriorVeins1Pressure_mmHg - rightPosteriorVeins2Pressure_mmHg) / (cerebralTargetFlow_mL_Per_s * 1.0 / 6.0);
+  double rightPosteriorArteries2ToSpinalFluidResistance_mmHg_s_Per_mL = (rightPosteriorArteries2Pressure_mmHg - intracranialPressure_mmHg) / (cerebroSpinalFluidFlow_mL_Per_s * 1.0 / 6.0);
+  double spinalFluidToRightPosteriorVeinsCheckResistance_mmHg_s_Per_mL = (intracranialPressure_mmHg - rightPosteriorVeins2Pressure_mmHg) / (cerebroSpinalFluidFlow_mL_Per_s * 1.0 / 6.0);
+
+  // THE REST
+  double neckVeinsToVenaCavaResistance_mmHg_s_Per_mL = (neckVeinsPressure_mmHg - CardioCircuit.GetNode(BGE::CardiovascularNode::VenaCava)->GetPressure(PressureUnit::mmHg)) / cerebralTargetFlow_mL_Per_s;
+
+
+  //---Compliance elements---
+// again, literature values forthcoming. These values assumed to be the same as in previous model.
+// LEFT COROTID
+  double leftCorotidToGroundCompliance_mL_Per_mmHg = 0.20;
+  // LEFT ANTERIOR
+  double leftAnteriorArteries1ToSpinalFluidCompliance_mL_Per_mmHg = 0.20;
+  double leftAnteriorCapillariesToSpinalFluidCompliance_mL_Per_mmHg = 0.22;
+  double leftAnteriorVeins1ToSpinalFluidCompliance_mL_Per_mmHg = 1.0;
+  // LEFT MEDIAL
+  double leftMedialArteries1ToSpinalFluidCompliance_mL_Per_mmHg = 0.20;
+  double leftMedialCapillariesToSpinalFluidCompliance_mL_Per_mmHg = 0.22;
+  double leftMedialVeins1ToSpinalFluidCompliance_mL_Per_mmHg = 1.0;
+
+  // RIGHT COROTID
+  double rightCorotidToGroundCompliance_mL_Per_mmHg = 0.20;
+  // RIGHT ANTERIOR
+  double rightAnteriorArteries1ToSpinalFluidCompliance_mL_Per_mmHg = 0.20;
+  double rightAnteriorCapillariesToSpinalFluidCompliance_mL_Per_mmHg = 0.22;
+  double rightAnteriorVeins1ToSpinalFluidCompliance_mL_Per_mmHg = 1.0;
+  // RIGHT MEDIAL
+  double rightMedialArteries1ToSpinalFluidCompliance_mL_Per_mmHg = 0.20;
+  double rightMedialCapillariesToSpinalFluidCompliance_mL_Per_mmHg = 0.22;
+  double rightMedialVeins1ToSpinalFluidCompliance_mL_Per_mmHg = 1.0;
+
+  // LEFT BASILAR
+  double leftBasilarToGroundCompliance_mL_Per_mmHg = 0.20;
+  // LEFT POSTERIOR
+  double leftPosteriorArteries1ToSpinalFluidCompliance_mL_Per_mmHg = 0.20;
+  double leftPosteriorCapillariesToSpinalFluidCompliance_mL_Per_mmHg = 0.22;
+  double leftPosteriorVeins1ToSpinalFluidCompliance_mL_Per_mmHg = 1.0;
+
+  // RIGHT BASILAR
+  double rightBasilarToGroundCompliance_mL_Per_mmHg = 0.20;
+  // RIGHT POSTERIOR
+  double rightPosteriorArteries1ToSpinalFluidCompliance_mL_Per_mmHg = 0.20;
+  double rightPosteriorCapillariesToSpinalFluidCompliance_mL_Per_mmHg = 0.22;
+  double rightPosteriorVeins1ToSpinalFluidCompliance_mL_Per_mmHg = 1.0;
+
+  // THE REST
+  double intracranialCompliance_mL_Per_mmHg = 1.0 / (0.11 * intracranialPressure_mmHg); //Lu cites 0.11 as an "intracranial rigidity" factor
+
+
+
+//------------------------Cerebral Circuit (n = nodes, p = paths)-----------------------
+  //---Create circuit nodes for advanced circuit---
+// THE REST
+  SEFluidCircuitNode& nGround = CerebralCircuit.CreateNode(BGE::CerebralNode::Ground);
+  nGround.GetPressure().SetValue(0.0, PressureUnit::mmHg);
+  CerebralCircuit.AddReferenceNode(nGround);
+
+  SEFluidCircuitNode& nNeckVeins = CerebralCircuit.CreateNode(BGE::CerebralNode::NeckVeins);
+  nNeckVeins.GetPressure().SetValue(neckVeinsPressure_mmHg, PressureUnit::mmHg);
+  nNeckVeins.GetVolumeBaseline().SetValue(neckVeinsVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nSpinalFluid = CerebralCircuit.CreateNode(BGE::CerebralNode::SpinalFluid);
+  nSpinalFluid.GetPressure().SetValue(intracranialPressure_mmHg, PressureUnit::mmHg);
+  nSpinalFluid.GetVolumeBaseline().SetValue(intracranialVolume_mL, VolumeUnit::mL);
+  //
+
+// LEFT COROTID
+  SEFluidCircuitNode& nLeftCorotid = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftCorotid);
+  nLeftCorotid.GetPressure().SetValue(leftCorotidPressure_mmHg, PressureUnit::mmHg);
+  nLeftCorotid.GetVolumeBaseline().SetValue(leftCorotidVolume_mL, VolumeUnit::mL);
+
+  // LEFT ANTERIOR
+  SEFluidCircuitNode& nLeftAnteriorArteries1 = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftAnteriorArteries1);
+  nLeftAnteriorArteries1.GetPressure().SetValue(leftAnteriorArteries1Pressure_mmHg, PressureUnit::mmHg);
+  nLeftAnteriorArteries1.GetVolumeBaseline().SetValue(leftAnteriorArteriesVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nLeftAnteriorArteries2 = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftAnteriorArteries2);
+  nLeftAnteriorArteries2.GetPressure().SetValue(leftAnteriorArteries2Pressure_mmHg, PressureUnit::mmHg);
+
+  SEFluidCircuitNode& nLeftAnteriorCapillaries = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftAnteriorCapillaries);
+  nLeftAnteriorCapillaries.GetPressure().SetValue(leftAnteriorCapillariesPressure_mmHg, PressureUnit::mmHg);
+  nLeftAnteriorCapillaries.GetVolumeBaseline().SetValue(leftAnteriorCapillariesVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nLeftAnteriorVeins1 = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftAnteriorVeins1);
+  nLeftAnteriorVeins1.GetPressure().SetValue(leftAnteriorVeins1Pressure_mmHg, PressureUnit::mmHg);
+  nLeftAnteriorVeins1.GetVolumeBaseline().SetValue(leftAnteriorVeinsVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nLeftAnteriorVeins2 = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftAnteriorVeins2);
+  nLeftAnteriorVeins2.GetPressure().SetValue(leftAnteriorVeins2Pressure_mmHg, PressureUnit::mmHg);
+
+  SEFluidCircuitNode& nLeftAnteriorVeinsCheck = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftAnteriorVeinsCheck);
+  nLeftAnteriorVeinsCheck.GetPressure().SetValue(leftAnteriorVeins2Pressure_mmHg, PressureUnit::mmHg);
+
+  //LEFT MEDIAL
+  SEFluidCircuitNode& nLeftMedialArteries1 = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftMedialArteries1);
+  nLeftMedialArteries1.GetPressure().SetValue(leftMedialArteries1Pressure_mmHg, PressureUnit::mmHg);
+  nLeftMedialArteries1.GetVolumeBaseline().SetValue(leftMedialArteriesVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nLeftMedialArteries2 = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftMedialArteries2);
+  nLeftMedialArteries2.GetPressure().SetValue(leftMedialArteries2Pressure_mmHg, PressureUnit::mmHg);
+
+  SEFluidCircuitNode& nLeftMedialCapillaries = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftMedialCapillaries);
+  nLeftMedialCapillaries.GetPressure().SetValue(leftMedialCapillariesPressure_mmHg, PressureUnit::mmHg);
+  nLeftMedialCapillaries.GetVolumeBaseline().SetValue(leftMedialCapillariesVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nLeftMedialVeins1 = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftMedialVeins1);
+  nLeftMedialVeins1.GetPressure().SetValue(leftMedialVeins1Pressure_mmHg, PressureUnit::mmHg);
+  nLeftMedialVeins1.GetVolumeBaseline().SetValue(leftMedialVeinsVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nLeftMedialVeins2 = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftMedialVeins2);
+  nLeftMedialVeins2.GetPressure().SetValue(leftMedialVeins2Pressure_mmHg, PressureUnit::mmHg);
+
+  SEFluidCircuitNode& nLeftMedialVeinsCheck = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftMedialVeinsCheck);
+  nLeftMedialVeinsCheck.GetPressure().SetValue(leftMedialVeins2Pressure_mmHg, PressureUnit::mmHg);
+  //
+
+
+// RIGHT COROTID
+  SEFluidCircuitNode& nRightCorotid = CerebralCircuit.CreateNode(BGE::CerebralNode::RightCorotid);
+  nRightCorotid.GetPressure().SetValue(rightCorotidPressure_mmHg, PressureUnit::mmHg);
+  nRightCorotid.GetVolumeBaseline().SetValue(rightCorotidVolume_mL, VolumeUnit::mL);
+
+  // RIGHT ANTERIOR
+  SEFluidCircuitNode& nRightAnteriorArteries1 = CerebralCircuit.CreateNode(BGE::CerebralNode::RightAnteriorArteries1);
+  nRightAnteriorArteries1.GetPressure().SetValue(rightAnteriorArteries1Pressure_mmHg, PressureUnit::mmHg);
+  nRightAnteriorArteries1.GetVolumeBaseline().SetValue(rightAnteriorArteriesVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nRightAnteriorArteries2 = CerebralCircuit.CreateNode(BGE::CerebralNode::RightAnteriorArteries2);
+  nRightAnteriorArteries2.GetPressure().SetValue(rightAnteriorArteries2Pressure_mmHg, PressureUnit::mmHg);
+
+  SEFluidCircuitNode& nRightAnteriorCapillaries = CerebralCircuit.CreateNode(BGE::CerebralNode::RightAnteriorCapillaries);
+  nRightAnteriorCapillaries.GetPressure().SetValue(rightAnteriorCapillariesPressure_mmHg, PressureUnit::mmHg);
+  nRightAnteriorCapillaries.GetVolumeBaseline().SetValue(rightAnteriorCapillariesVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nRightAnteriorVeins1 = CerebralCircuit.CreateNode(BGE::CerebralNode::RightAnteriorVeins1);
+  nRightAnteriorVeins1.GetPressure().SetValue(rightAnteriorVeins1Pressure_mmHg, PressureUnit::mmHg);
+  nRightAnteriorVeins1.GetVolumeBaseline().SetValue(rightAnteriorVeinsVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nRightAnteriorVeins2 = CerebralCircuit.CreateNode(BGE::CerebralNode::RightAnteriorVeins2);
+  nRightAnteriorVeins2.GetPressure().SetValue(rightAnteriorVeins2Pressure_mmHg, PressureUnit::mmHg);
+
+  SEFluidCircuitNode& nRightAnteriorVeinsCheck = CerebralCircuit.CreateNode(BGE::CerebralNode::RightAnteriorVeinsCheck);
+  nRightAnteriorVeinsCheck.GetPressure().SetValue(rightAnteriorVeins2Pressure_mmHg, PressureUnit::mmHg);
+
+  //RIGHT MEDIAL
+  SEFluidCircuitNode& nRightMedialArteries1 = CerebralCircuit.CreateNode(BGE::CerebralNode::RightMedialArteries1);
+  nRightMedialArteries1.GetPressure().SetValue(rightMedialArteries1Pressure_mmHg, PressureUnit::mmHg);
+  nRightMedialArteries1.GetVolumeBaseline().SetValue(rightMedialArteriesVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nRightMedialArteries2 = CerebralCircuit.CreateNode(BGE::CerebralNode::RightMedialArteries2);
+  nRightMedialArteries2.GetPressure().SetValue(rightMedialArteries2Pressure_mmHg, PressureUnit::mmHg);
+
+  SEFluidCircuitNode& nRightMedialCapillaries = CerebralCircuit.CreateNode(BGE::CerebralNode::RightMedialCapillaries);
+  nRightMedialCapillaries.GetPressure().SetValue(rightMedialCapillariesPressure_mmHg, PressureUnit::mmHg);
+  nRightMedialCapillaries.GetVolumeBaseline().SetValue(rightMedialCapillariesVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nRightMedialVeins1 = CerebralCircuit.CreateNode(BGE::CerebralNode::RightMedialVeins1);
+  nRightMedialVeins1.GetPressure().SetValue(rightMedialVeins1Pressure_mmHg, PressureUnit::mmHg);
+  nRightMedialVeins1.GetVolumeBaseline().SetValue(rightMedialVeinsVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nRightMedialVeins2 = CerebralCircuit.CreateNode(BGE::CerebralNode::RightMedialVeins2);
+  nRightMedialVeins2.GetPressure().SetValue(rightMedialVeins2Pressure_mmHg, PressureUnit::mmHg);
+
+  SEFluidCircuitNode& nRightMedialVeinsCheck = CerebralCircuit.CreateNode(BGE::CerebralNode::RightMedialVeinsCheck);
+  nRightMedialVeinsCheck.GetPressure().SetValue(rightMedialVeins2Pressure_mmHg, PressureUnit::mmHg);
+  //
+
+// LEFT BASILAR
+  SEFluidCircuitNode& nLeftBasilar = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftBasilar);
+  nLeftBasilar.GetPressure().SetValue(leftBasilarPressure_mmHg, PressureUnit::mmHg);
+  nLeftBasilar.GetVolumeBaseline().SetValue(leftBasilarVolume_mL, VolumeUnit::mL);
+
+  // LEFT POSTERIOR
+  SEFluidCircuitNode& nLeftPosteriorArteries1 = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftPosteriorArteries1);
+  nLeftPosteriorArteries1.GetPressure().SetValue(leftPosteriorArteries1Pressure_mmHg, PressureUnit::mmHg);
+  nLeftPosteriorArteries1.GetVolumeBaseline().SetValue(leftPosteriorArteriesVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nLeftPosteriorArteries2 = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftPosteriorArteries2);
+  nLeftPosteriorArteries2.GetPressure().SetValue(leftPosteriorArteries2Pressure_mmHg, PressureUnit::mmHg);
+
+  SEFluidCircuitNode& nLeftPosteriorCapillaries = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftPosteriorCapillaries);
+  nLeftPosteriorCapillaries.GetPressure().SetValue(leftPosteriorCapillariesPressure_mmHg, PressureUnit::mmHg);
+  nLeftPosteriorCapillaries.GetVolumeBaseline().SetValue(leftPosteriorCapillariesVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nLeftPosteriorVeins1 = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftPosteriorVeins1);
+  nLeftPosteriorVeins1.GetPressure().SetValue(leftPosteriorVeins1Pressure_mmHg, PressureUnit::mmHg);
+  nLeftPosteriorVeins1.GetVolumeBaseline().SetValue(leftPosteriorVeinsVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nLeftPosteriorVeins2 = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftPosteriorVeins2);
+  nLeftPosteriorVeins2.GetPressure().SetValue(leftPosteriorVeins2Pressure_mmHg, PressureUnit::mmHg);
+
+  SEFluidCircuitNode& nLeftPosteriorVeinsCheck = CerebralCircuit.CreateNode(BGE::CerebralNode::LeftPosteriorVeinsCheck);
+  nLeftPosteriorVeinsCheck.GetPressure().SetValue(leftPosteriorVeins2Pressure_mmHg, PressureUnit::mmHg);
+  //
+
+// RIGHT BASILAR
+  SEFluidCircuitNode& nRightBasilar = CerebralCircuit.CreateNode(BGE::CerebralNode::RightBasilar);
+  nRightBasilar.GetPressure().SetValue(rightBasilarPressure_mmHg, PressureUnit::mmHg);
+  nRightBasilar.GetVolumeBaseline().SetValue(rightBasilarVolume_mL, VolumeUnit::mL);
+
+  // RIGHT POSTERIOR
+  SEFluidCircuitNode& nRightPosteriorArteries1 = CerebralCircuit.CreateNode(BGE::CerebralNode::RightPosteriorArteries1);
+  nRightPosteriorArteries1.GetPressure().SetValue(rightPosteriorArteries1Pressure_mmHg, PressureUnit::mmHg);
+  nRightPosteriorArteries1.GetVolumeBaseline().SetValue(rightPosteriorArteriesVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nRightPosteriorArteries2 = CerebralCircuit.CreateNode(BGE::CerebralNode::RightPosteriorArteries2);
+  nRightPosteriorArteries2.GetPressure().SetValue(rightPosteriorArteries2Pressure_mmHg, PressureUnit::mmHg);
+
+  SEFluidCircuitNode& nRightPosteriorCapillaries = CerebralCircuit.CreateNode(BGE::CerebralNode::RightPosteriorCapillaries);
+  nRightPosteriorCapillaries.GetPressure().SetValue(rightPosteriorCapillariesPressure_mmHg, PressureUnit::mmHg);
+  nRightPosteriorCapillaries.GetVolumeBaseline().SetValue(rightPosteriorCapillariesVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nRightPosteriorVeins1 = CerebralCircuit.CreateNode(BGE::CerebralNode::RightPosteriorVeins1);
+  nRightPosteriorVeins1.GetPressure().SetValue(rightPosteriorVeins1Pressure_mmHg, PressureUnit::mmHg);
+  nRightPosteriorVeins1.GetVolumeBaseline().SetValue(rightPosteriorVeinsVolume_mL, VolumeUnit::mL);
+
+  SEFluidCircuitNode& nRightPosteriorVeins2 = CerebralCircuit.CreateNode(BGE::CerebralNode::RightPosteriorVeins2);
+  nRightPosteriorVeins2.GetPressure().SetValue(rightPosteriorVeins2Pressure_mmHg, PressureUnit::mmHg);
+
+  SEFluidCircuitNode& nRightPosteriorVeinsCheck = CerebralCircuit.CreateNode(BGE::CerebralNode::RightPosteriorVeinsCheck);
+  nRightPosteriorVeinsCheck.GetPressure().SetValue(rightPosteriorVeins2Pressure_mmHg, PressureUnit::mmHg);
+  //
+
+
+//---Create the Paths for Advanced Cerebral Cricuit---
+//LEFT COROTID
+  SEFluidCircuitPath& pLeftCorotidToGround = CerebralCircuit.CreatePath(nLeftCorotid, nGround, BGE::CerebralPath::LeftCorotidToGround);
+  pLeftCorotidToGround.GetComplianceBaseline().SetValue(leftCorotidToGroundCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  // LEFT ANTERIOR
+  SEFluidCircuitPath& pLeftCorotidToLeftAnteriorArteries1 = CerebralCircuit.CreatePath(nLeftCorotid, nLeftAnteriorArteries1, BGE::CerebralPath::LeftCorotidToLeftAnteriorArteries1);
+  pLeftCorotidToLeftAnteriorArteries1.GetResistanceBaseline().SetValue(leftCorotidToLeftAnteriorArteries1Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pLeftCorotidToLeftAnteriorArteries1.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pLeftAnteriorArteries1ToArteries2 = CerebralCircuit.CreatePath(nLeftAnteriorArteries1, nLeftAnteriorArteries2, BGE::CerebralPath::LeftAnteriorArteries1ToLeftAnteriorArteries2);
+
+  SEFluidCircuitPath& pLeftAnteriorArteries1ToSpinalFluid = CerebralCircuit.CreatePath(nLeftAnteriorArteries1, nSpinalFluid, BGE::CerebralPath::LeftAnteriorArteries1ToSpinalFluid);
+  pLeftAnteriorArteries1ToSpinalFluid.GetComplianceBaseline().SetValue(leftAnteriorArteries1ToSpinalFluidCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pLeftAnteriorArteries2ToSpinalFluid = CerebralCircuit.CreatePath(nLeftAnteriorArteries2, nSpinalFluid, BGE::CerebralPath::LeftAnteriorArteries2ToSpinalFluid);
+  pLeftAnteriorArteries2ToSpinalFluid.GetResistanceBaseline().SetValue(leftAnteriorArteries2ToSpinalFluidResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+
+  SEFluidCircuitPath& pLeftAnteriorArteries2ToCapillaries = CerebralCircuit.CreatePath(nLeftAnteriorArteries2, nLeftAnteriorCapillaries, BGE::CerebralPath::LeftAnteriorArteries2ToCapillaries);
+  pLeftAnteriorArteries2ToCapillaries.GetResistanceBaseline().SetValue(leftAnteriorArteries2ToLeftAnteriorCapillariesResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pLeftAnteriorArteries2ToCapillaries.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pLeftAnteriorCapillariesToSpinalFluid = CerebralCircuit.CreatePath(nLeftAnteriorCapillaries, nSpinalFluid, BGE::CerebralPath::LeftAnteriorCapillariesToSpinalFluid);
+  pLeftAnteriorCapillariesToSpinalFluid.GetComplianceBaseline().SetValue(leftAnteriorCapillariesToSpinalFluidCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pLeftAnteriorCapillariesToLeftAnteriorVeins1 = CerebralCircuit.CreatePath(nLeftAnteriorCapillaries, nLeftAnteriorVeins1, BGE::CerebralPath::LeftAnteriorCapillariesToLeftAnteriorVeins1);
+  pLeftAnteriorCapillariesToLeftAnteriorVeins1.GetResistanceBaseline().SetValue(leftAnteriorCapillariesToLeftAnteriorVeins1Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pLeftAnteriorCapillariesToLeftAnteriorVeins1.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pLeftAnteriorVeins1ToVeins2 = CerebralCircuit.CreatePath(nLeftAnteriorVeins1, nLeftAnteriorVeins2, BGE::CerebralPath::LeftAnteriorVeins1ToLeftAnteriorVeins2);
+  pLeftAnteriorVeins1ToVeins2.GetResistanceBaseline().SetValue(leftAnteriorVeins1ToLeftAnteriorVeins2Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pLeftAnteriorVeins1ToVeins2.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pLeftAnteriorVeins2ToNeckVeins = CerebralCircuit.CreatePath(nLeftAnteriorVeins2, nNeckVeins, BGE::CerebralPath::LeftAnteriorVeins2ToNeckVeins);
+
+  SEFluidCircuitPath& pSpinalFluidToLeftAnteriorVeinsCheck = CerebralCircuit.CreatePath(nSpinalFluid, nLeftAnteriorVeinsCheck, BGE::CerebralPath::SpinalFluidToLeftAnteriorVeinsCheck);
+  pSpinalFluidToLeftAnteriorVeinsCheck.GetResistanceBaseline().SetValue(spinalFluidToLeftAnteriorVeinsCheckResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+
+  SEFluidCircuitPath& pLeftAnteriorVeinsCheckToVeins2 = CerebralCircuit.CreatePath(nLeftAnteriorVeinsCheck, nLeftAnteriorVeins2, BGE::CerebralPath::LeftAnteriorVeinsCheckToLeftAnteriorVeins2);
+  pLeftAnteriorVeinsCheckToVeins2.SetNextValve(CDM::enumOpenClosed::Closed);
+
+  // LEFT MEDIAL
+  SEFluidCircuitPath& pLeftCorotidToLeftMedialArteries1 = CerebralCircuit.CreatePath(nLeftCorotid, nLeftMedialArteries1, BGE::CerebralPath::LeftCorotidToLeftMedialArteries1);
+  pLeftCorotidToLeftMedialArteries1.GetResistanceBaseline().SetValue(leftCorotidToLeftMedialArteries1Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pLeftCorotidToLeftMedialArteries1.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pLeftMedialArteries1ToArteries2 = CerebralCircuit.CreatePath(nLeftMedialArteries1, nLeftMedialArteries2, BGE::CerebralPath::LeftMedialArteries1ToLeftMedialArteries2);
+
+  SEFluidCircuitPath& pLeftMedialArteries1ToSpinalFluid = CerebralCircuit.CreatePath(nLeftMedialArteries1, nSpinalFluid, BGE::CerebralPath::LeftMedialArteries1ToSpinalFluid);
+  pLeftMedialArteries1ToSpinalFluid.GetComplianceBaseline().SetValue(leftMedialArteries1ToSpinalFluidCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pLeftMedialArteries2ToSpinalFluid = CerebralCircuit.CreatePath(nLeftMedialArteries2, nSpinalFluid, BGE::CerebralPath::LeftMedialArteries2ToSpinalFluid);
+  pLeftMedialArteries2ToSpinalFluid.GetResistanceBaseline().SetValue(leftMedialArteries2ToSpinalFluidResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+
+  SEFluidCircuitPath& pLeftMedialArteries2ToCapillaries = CerebralCircuit.CreatePath(nLeftMedialArteries2, nLeftMedialCapillaries, BGE::CerebralPath::LeftMedialArteries2ToCapillaries);
+  pLeftMedialArteries2ToCapillaries.GetResistanceBaseline().SetValue(leftMedialArteries2ToLeftMedialCapillariesResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pLeftMedialArteries2ToCapillaries.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pLeftMedialCapillariesToSpinalFluid = CerebralCircuit.CreatePath(nLeftMedialCapillaries, nSpinalFluid, BGE::CerebralPath::LeftMedialCapillariesToSpinalFluid);
+  pLeftMedialCapillariesToSpinalFluid.GetComplianceBaseline().SetValue(leftMedialCapillariesToSpinalFluidCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pLeftMedialCapillariesToLeftMedialVeins1 = CerebralCircuit.CreatePath(nLeftMedialCapillaries, nLeftMedialVeins1, BGE::CerebralPath::LeftMedialCapillariesToLeftMedialVeins1);
+  pLeftMedialCapillariesToLeftMedialVeins1.GetResistanceBaseline().SetValue(leftMedialCapillariesToLeftMedialVeins1Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pLeftMedialCapillariesToLeftMedialVeins1.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pLeftMedialVeins1ToVeins2 = CerebralCircuit.CreatePath(nLeftMedialVeins1, nLeftMedialVeins2, BGE::CerebralPath::LeftMedialVeins1ToLeftMedialVeins2);
+  pLeftMedialVeins1ToVeins2.GetResistanceBaseline().SetValue(leftMedialVeins1ToLeftMedialVeins2Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pLeftMedialVeins1ToVeins2.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pLeftMedialVeins2ToNeckVeins = CerebralCircuit.CreatePath(nLeftMedialVeins2, nNeckVeins, BGE::CerebralPath::LeftMedialVeins2ToNeckVeins);
+
+  SEFluidCircuitPath& pSpinalFluidToLeftMedialVeinsCheck = CerebralCircuit.CreatePath(nSpinalFluid, nLeftMedialVeinsCheck, BGE::CerebralPath::SpinalFluidToLeftMedialVeinsCheck);
+  pSpinalFluidToLeftMedialVeinsCheck.GetResistanceBaseline().SetValue(spinalFluidToLeftMedialVeinsCheckResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+
+  SEFluidCircuitPath& pLeftMedialVeinsCheckToVeins2 = CerebralCircuit.CreatePath(nLeftMedialVeinsCheck, nLeftMedialVeins2, BGE::CerebralPath::LeftMedialVeinsCheckToLeftMedialVeins2);
+  pLeftMedialVeinsCheckToVeins2.SetNextValve(CDM::enumOpenClosed::Closed);
+  //
+
+//RIGHT COROTID
+  SEFluidCircuitPath& pRightCorotidToGround = CerebralCircuit.CreatePath(nRightCorotid, nGround, BGE::CerebralPath::RightCorotidToGround);
+  pRightCorotidToGround.GetComplianceBaseline().SetValue(rightCorotidToGroundCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  // RIGHT ANTERIOR
+  SEFluidCircuitPath& pRightCorotidToRightAnteriorArteries1 = CerebralCircuit.CreatePath(nRightCorotid, nRightAnteriorArteries1, BGE::CerebralPath::RightCorotidToRightAnteriorArteries1);
+  pRightCorotidToRightAnteriorArteries1.GetResistanceBaseline().SetValue(rightCorotidToRightAnteriorArteries1Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pRightCorotidToRightAnteriorArteries1.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pRightAnteriorArteries1ToArteries2 = CerebralCircuit.CreatePath(nRightAnteriorArteries1, nRightAnteriorArteries2, BGE::CerebralPath::RightAnteriorArteries1ToRightAnteriorArteries2);
+
+  SEFluidCircuitPath& pRightAnteriorArteries1ToSpinalFluid = CerebralCircuit.CreatePath(nRightAnteriorArteries1, nSpinalFluid, BGE::CerebralPath::RightAnteriorArteries1ToSpinalFluid);
+  pRightAnteriorArteries1ToSpinalFluid.GetComplianceBaseline().SetValue(rightAnteriorArteries1ToSpinalFluidCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pRightAnteriorArteries2ToSpinalFluid = CerebralCircuit.CreatePath(nRightAnteriorArteries2, nSpinalFluid, BGE::CerebralPath::RightAnteriorArteries2ToSpinalFluid);
+  pRightAnteriorArteries2ToSpinalFluid.GetResistanceBaseline().SetValue(rightAnteriorArteries2ToSpinalFluidResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+
+  SEFluidCircuitPath& pRightAnteriorArteries2ToCapillaries = CerebralCircuit.CreatePath(nRightAnteriorArteries2, nRightAnteriorCapillaries, BGE::CerebralPath::RightAnteriorArteries2ToCapillaries);
+  pRightAnteriorArteries2ToCapillaries.GetResistanceBaseline().SetValue(rightAnteriorArteries2ToRightAnteriorCapillariesResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pRightAnteriorArteries2ToCapillaries.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pRightAnteriorCapillariesToSpinalFluid = CerebralCircuit.CreatePath(nRightAnteriorCapillaries, nSpinalFluid, BGE::CerebralPath::RightAnteriorCapillariesToSpinalFluid);
+  pRightAnteriorCapillariesToSpinalFluid.GetComplianceBaseline().SetValue(rightAnteriorCapillariesToSpinalFluidCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pRightAnteriorCapillariesToRightAnteriorVeins1 = CerebralCircuit.CreatePath(nRightAnteriorCapillaries, nRightAnteriorVeins1, BGE::CerebralPath::RightAnteriorCapillariesToRightAnteriorVeins1);
+  pRightAnteriorCapillariesToRightAnteriorVeins1.GetResistanceBaseline().SetValue(rightAnteriorCapillariesToRightAnteriorVeins1Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pRightAnteriorCapillariesToRightAnteriorVeins1.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pRightAnteriorVeins1ToVeins2 = CerebralCircuit.CreatePath(nRightAnteriorVeins1, nRightAnteriorVeins2, BGE::CerebralPath::RightAnteriorVeins1ToRightAnteriorVeins2);
+  pRightAnteriorVeins1ToVeins2.GetResistanceBaseline().SetValue(rightAnteriorVeins1ToRightAnteriorVeins2Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pRightAnteriorVeins1ToVeins2.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pRightAnteriorVeins2ToNeckVeins = CerebralCircuit.CreatePath(nRightAnteriorVeins2, nNeckVeins, BGE::CerebralPath::RightAnteriorVeins2ToNeckVeins);
+
+  SEFluidCircuitPath& pSpinalFluidToRightAnteriorVeinsCheck = CerebralCircuit.CreatePath(nSpinalFluid, nRightAnteriorVeinsCheck, BGE::CerebralPath::SpinalFluidToRightAnteriorVeinsCheck);
+  pSpinalFluidToRightAnteriorVeinsCheck.GetResistanceBaseline().SetValue(spinalFluidToRightAnteriorVeinsCheckResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+
+  SEFluidCircuitPath& pRightAnteriorVeinsCheckToVeins2 = CerebralCircuit.CreatePath(nRightAnteriorVeinsCheck, nRightAnteriorVeins2, BGE::CerebralPath::RightAnteriorVeinsCheckToRightAnteriorVeins2);
+  pRightAnteriorVeinsCheckToVeins2.SetNextValve(CDM::enumOpenClosed::Closed);
+
+  // RIGHT MEDIAL
+  SEFluidCircuitPath& pRightCorotidToRightMedialArteries1 = CerebralCircuit.CreatePath(nRightCorotid, nRightMedialArteries1, BGE::CerebralPath::RightCorotidToRightMedialArteries1);
+  pRightCorotidToRightMedialArteries1.GetResistanceBaseline().SetValue(rightCorotidToRightMedialArteries1Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pRightCorotidToRightMedialArteries1.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pRightMedialArteries1ToArteries2 = CerebralCircuit.CreatePath(nRightMedialArteries1, nRightMedialArteries2, BGE::CerebralPath::RightMedialArteries1ToRightMedialArteries2);
+
+  SEFluidCircuitPath& pRightMedialArteries1ToSpinalFluid = CerebralCircuit.CreatePath(nRightMedialArteries1, nSpinalFluid, BGE::CerebralPath::RightMedialArteries1ToSpinalFluid);
+  pRightMedialArteries1ToSpinalFluid.GetComplianceBaseline().SetValue(rightMedialArteries1ToSpinalFluidCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pRightMedialArteries2ToSpinalFluid = CerebralCircuit.CreatePath(nRightMedialArteries2, nSpinalFluid, BGE::CerebralPath::RightMedialArteries2ToSpinalFluid);
+  pRightMedialArteries2ToSpinalFluid.GetResistanceBaseline().SetValue(rightMedialArteries2ToSpinalFluidResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+
+  SEFluidCircuitPath& pRightMedialArteries2ToCapillaries = CerebralCircuit.CreatePath(nRightMedialArteries2, nRightMedialCapillaries, BGE::CerebralPath::RightMedialArteries2ToCapillaries);
+  pRightMedialArteries2ToCapillaries.GetResistanceBaseline().SetValue(rightMedialArteries2ToRightMedialCapillariesResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pRightMedialArteries2ToCapillaries.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pRightMedialCapillariesToSpinalFluid = CerebralCircuit.CreatePath(nRightMedialCapillaries, nSpinalFluid, BGE::CerebralPath::RightMedialCapillariesToSpinalFluid);
+  pRightMedialCapillariesToSpinalFluid.GetComplianceBaseline().SetValue(rightMedialCapillariesToSpinalFluidCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pRightMedialCapillariesToRightMedialVeins1 = CerebralCircuit.CreatePath(nRightMedialCapillaries, nRightMedialVeins1, BGE::CerebralPath::RightMedialCapillariesToRightMedialVeins1);
+  pRightMedialCapillariesToRightMedialVeins1.GetResistanceBaseline().SetValue(rightMedialCapillariesToRightMedialVeins1Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pRightMedialCapillariesToRightMedialVeins1.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pRightMedialVeins1ToVeins2 = CerebralCircuit.CreatePath(nRightMedialVeins1, nRightMedialVeins2, BGE::CerebralPath::RightMedialVeins1ToRightMedialVeins2);
+  pRightMedialVeins1ToVeins2.GetResistanceBaseline().SetValue(rightMedialVeins1ToRightMedialVeins2Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pRightMedialVeins1ToVeins2.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pRightMedialVeins2ToNeckVeins = CerebralCircuit.CreatePath(nRightMedialVeins2, nNeckVeins, BGE::CerebralPath::RightMedialVeins2ToNeckVeins);
+
+  SEFluidCircuitPath& pSpinalFluidToRightMedialVeinsCheck = CerebralCircuit.CreatePath(nSpinalFluid, nRightMedialVeinsCheck, BGE::CerebralPath::SpinalFluidToRightMedialVeinsCheck);
+  pSpinalFluidToRightMedialVeinsCheck.GetResistanceBaseline().SetValue(spinalFluidToRightMedialVeinsCheckResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+
+  SEFluidCircuitPath& pRightMedialVeinsCheckToVeins2 = CerebralCircuit.CreatePath(nRightMedialVeinsCheck, nRightMedialVeins2, BGE::CerebralPath::RightMedialVeinsCheckToRightMedialVeins2);
+  pRightMedialVeinsCheckToVeins2.SetNextValve(CDM::enumOpenClosed::Closed);
+  //
+
+//LEFT BASILAR
+  SEFluidCircuitPath& pLeftBasilarToGround = CerebralCircuit.CreatePath(nLeftBasilar, nGround, BGE::CerebralPath::LeftBasilarToGround);
+  pLeftBasilarToGround.GetComplianceBaseline().SetValue(leftBasilarToGroundCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pLeftBasilarToLeftCorotid = CerebralCircuit.CreatePath(nLeftBasilar, nLeftCorotid, BGE::CerebralPath::LeftBasilarToLeftCorotid);
+  pLeftBasilarToLeftCorotid.GetResistanceBaseline().SetValue(leftBasilarToLeftCorotidResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+
+  // LEFT POSTERIOR
+  SEFluidCircuitPath& pLeftBasilarToLeftPosteriorArteries1 = CerebralCircuit.CreatePath(nLeftBasilar, nLeftPosteriorArteries1, BGE::CerebralPath::LeftBasilarToLeftPosteriorArteries1);
+  pLeftBasilarToLeftPosteriorArteries1.GetResistanceBaseline().SetValue(leftBasilarToLeftPosteriorArteries1Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pLeftBasilarToLeftPosteriorArteries1.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pLeftPosteriorArteries1ToArteries2 = CerebralCircuit.CreatePath(nLeftPosteriorArteries1, nLeftPosteriorArteries2, BGE::CerebralPath::LeftPosteriorArteries1ToLeftPosteriorArteries2);
+
+  SEFluidCircuitPath& pLeftPosteriorArteries1ToSpinalFluid = CerebralCircuit.CreatePath(nLeftPosteriorArteries1, nSpinalFluid, BGE::CerebralPath::LeftPosteriorArteries1ToSpinalFluid);
+  pLeftPosteriorArteries1ToSpinalFluid.GetComplianceBaseline().SetValue(leftPosteriorArteries1ToSpinalFluidCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pLeftPosteriorArteries2ToSpinalFluid = CerebralCircuit.CreatePath(nLeftPosteriorArteries2, nSpinalFluid, BGE::CerebralPath::LeftPosteriorArteries2ToSpinalFluid);
+  pLeftPosteriorArteries2ToSpinalFluid.GetResistanceBaseline().SetValue(leftPosteriorArteries2ToSpinalFluidResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+
+  SEFluidCircuitPath& pLeftPosteriorArteries2ToCapillaries = CerebralCircuit.CreatePath(nLeftPosteriorArteries2, nLeftPosteriorCapillaries, BGE::CerebralPath::LeftPosteriorArteries2ToCapillaries);
+  pLeftPosteriorArteries2ToCapillaries.GetResistanceBaseline().SetValue(leftPosteriorArteries2ToLeftPosteriorCapillariesResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pLeftPosteriorArteries2ToCapillaries.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pLeftPosteriorCapillariesToSpinalFluid = CerebralCircuit.CreatePath(nLeftPosteriorCapillaries, nSpinalFluid, BGE::CerebralPath::LeftPosteriorCapillariesToSpinalFluid);
+  pLeftPosteriorCapillariesToSpinalFluid.GetComplianceBaseline().SetValue(leftPosteriorCapillariesToSpinalFluidCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pLeftPosteriorCapillariesToLeftPosteriorVeins1 = CerebralCircuit.CreatePath(nLeftPosteriorCapillaries, nLeftPosteriorVeins1, BGE::CerebralPath::LeftPosteriorCapillariesToLeftPosteriorVeins1);
+  pLeftPosteriorCapillariesToLeftPosteriorVeins1.GetResistanceBaseline().SetValue(leftPosteriorCapillariesToLeftPosteriorVeins1Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pLeftPosteriorCapillariesToLeftPosteriorVeins1.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pLeftPosteriorVeins1ToVeins2 = CerebralCircuit.CreatePath(nLeftPosteriorVeins1, nLeftPosteriorVeins2, BGE::CerebralPath::LeftPosteriorVeins1ToLeftPosteriorVeins2);
+  pLeftPosteriorVeins1ToVeins2.GetResistanceBaseline().SetValue(leftPosteriorVeins1ToLeftPosteriorVeins2Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pLeftPosteriorVeins1ToVeins2.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pLeftPosteriorVeins2ToNeckVeins = CerebralCircuit.CreatePath(nLeftPosteriorVeins2, nNeckVeins, BGE::CerebralPath::LeftPosteriorVeins2ToNeckVeins);
+
+  SEFluidCircuitPath& pSpinalFluidToLeftPosteriorVeinsCheck = CerebralCircuit.CreatePath(nSpinalFluid, nLeftPosteriorVeinsCheck, BGE::CerebralPath::SpinalFluidToLeftPosteriorVeinsCheck);
+  pSpinalFluidToLeftPosteriorVeinsCheck.GetResistanceBaseline().SetValue(spinalFluidToLeftPosteriorVeinsCheckResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+
+  SEFluidCircuitPath& pLeftPosteriorVeinsCheckToVeins2 = CerebralCircuit.CreatePath(nLeftPosteriorVeinsCheck, nLeftPosteriorVeins2, BGE::CerebralPath::LeftPosteriorVeinsCheckToLeftPosteriorVeins2);
+  pLeftPosteriorVeinsCheckToVeins2.SetNextValve(CDM::enumOpenClosed::Closed);
+  //
+
+//RIGHT BASILAR
+  SEFluidCircuitPath& pRightBasilarToGround = CerebralCircuit.CreatePath(nRightBasilar, nGround, BGE::CerebralPath::RightBasilarToGround);
+  pRightBasilarToGround.GetComplianceBaseline().SetValue(rightBasilarToGroundCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pRightBasilarToRightCorotid = CerebralCircuit.CreatePath(nRightBasilar, nRightCorotid, BGE::CerebralPath::RightBasilarToRightCorotid);
+  pRightBasilarToRightCorotid.GetResistanceBaseline().SetValue(rightBasilarToRightCorotidResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+
+  // RIGHT POSTERIOR
+  SEFluidCircuitPath& pRightBasilarToRightPosteriorArteries1 = CerebralCircuit.CreatePath(nRightBasilar, nRightPosteriorArteries1, BGE::CerebralPath::RightBasilarToRightPosteriorArteries1);
+  pRightBasilarToRightPosteriorArteries1.GetResistanceBaseline().SetValue(rightBasilarToRightPosteriorArteries1Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pRightBasilarToRightPosteriorArteries1.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pRightPosteriorArteries1ToArteries2 = CerebralCircuit.CreatePath(nRightPosteriorArteries1, nRightPosteriorArteries2, BGE::CerebralPath::RightPosteriorArteries1ToRightPosteriorArteries2);
+
+  SEFluidCircuitPath& pRightPosteriorArteries1ToSpinalFluid = CerebralCircuit.CreatePath(nRightPosteriorArteries1, nSpinalFluid, BGE::CerebralPath::RightPosteriorArteries1ToSpinalFluid);
+  pRightPosteriorArteries1ToSpinalFluid.GetComplianceBaseline().SetValue(rightPosteriorArteries1ToSpinalFluidCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pRightPosteriorArteries2ToSpinalFluid = CerebralCircuit.CreatePath(nRightPosteriorArteries2, nSpinalFluid, BGE::CerebralPath::RightPosteriorArteries2ToSpinalFluid);
+  pRightPosteriorArteries2ToSpinalFluid.GetResistanceBaseline().SetValue(rightPosteriorArteries2ToSpinalFluidResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+
+  SEFluidCircuitPath& pRightPosteriorArteries2ToCapillaries = CerebralCircuit.CreatePath(nRightPosteriorArteries2, nRightPosteriorCapillaries, BGE::CerebralPath::RightPosteriorArteries2ToCapillaries);
+  pRightPosteriorArteries2ToCapillaries.GetResistanceBaseline().SetValue(rightPosteriorArteries2ToRightPosteriorCapillariesResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pRightPosteriorArteries2ToCapillaries.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pRightPosteriorCapillariesToSpinalFluid = CerebralCircuit.CreatePath(nRightPosteriorCapillaries, nSpinalFluid, BGE::CerebralPath::RightPosteriorCapillariesToSpinalFluid);
+  pRightPosteriorCapillariesToSpinalFluid.GetComplianceBaseline().SetValue(rightPosteriorCapillariesToSpinalFluidCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pRightPosteriorCapillariesToRightPosteriorVeins1 = CerebralCircuit.CreatePath(nRightPosteriorCapillaries, nRightPosteriorVeins1, BGE::CerebralPath::RightPosteriorCapillariesToRightPosteriorVeins1);
+  pRightPosteriorCapillariesToRightPosteriorVeins1.GetResistanceBaseline().SetValue(rightPosteriorCapillariesToRightPosteriorVeins1Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pRightPosteriorCapillariesToRightPosteriorVeins1.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pRightPosteriorVeins1ToVeins2 = CerebralCircuit.CreatePath(nRightPosteriorVeins1, nRightPosteriorVeins2, BGE::CerebralPath::RightPosteriorVeins1ToRightPosteriorVeins2);
+  pRightPosteriorVeins1ToVeins2.GetResistanceBaseline().SetValue(rightPosteriorVeins1ToRightPosteriorVeins2Resistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pRightPosteriorVeins1ToVeins2.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  SEFluidCircuitPath& pRightPosteriorVeins2ToNeckVeins = CerebralCircuit.CreatePath(nRightPosteriorVeins2, nNeckVeins, BGE::CerebralPath::RightPosteriorVeins2ToNeckVeins);
+
+  SEFluidCircuitPath& pSpinalFluidToRightPosteriorVeinsCheck = CerebralCircuit.CreatePath(nSpinalFluid, nRightPosteriorVeinsCheck, BGE::CerebralPath::SpinalFluidToRightPosteriorVeinsCheck);
+  pSpinalFluidToRightPosteriorVeinsCheck.GetResistanceBaseline().SetValue(spinalFluidToRightPosteriorVeinsCheckResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+
+  SEFluidCircuitPath& pRightPosteriorVeinsCheckToVeins2 = CerebralCircuit.CreatePath(nRightPosteriorVeinsCheck, nRightPosteriorVeins2, BGE::CerebralPath::RightPosteriorVeinsCheckToRightPosteriorVeins2);
+  pRightPosteriorVeinsCheckToVeins2.SetNextValve(CDM::enumOpenClosed::Closed);
+  //
+
+// REST OF PATHS
+  SEFluidCircuitPath& pNeckVeinsToGround = CerebralCircuit.CreatePath(nNeckVeins, nGround, BGE::CerebralPath::NeckVeinsToGround);
+  pNeckVeinsToGround.GetComplianceBaseline().SetValue(neckVeinsPressure_mmHg / neckVeinsVolume_mL, FlowComplianceUnit::mL_Per_mmHg);
+
+  SEFluidCircuitPath& pSpinalFluidToGround = CerebralCircuit.CreatePath(nSpinalFluid, nGround, BGE::CerebralPath::SpinalFluidToGround);
+  pSpinalFluidToGround.GetComplianceBaseline().SetValue(intracranialCompliance_mL_Per_mmHg, FlowComplianceUnit::mL_Per_mmHg);
+
+  CerebralCircuit.SetNextAndCurrentFromBaselines();
+  CerebralCircuit.StateChange();
+  //
+
+
+
+//-----------------Delete the three-element Windkessel brain and add the cerebral circuit to the active combined CV circuit----------------
+  SEFluidCircuit& CombinedCardioCircuit = m_Circuits->GetActiveCardiovascularCircuit();
+  m_Circuits->DeleteFluidNode(BGE::CardiovascularNode::Brain1);
+  m_Circuits->DeleteFluidNode(BGE::CardiovascularNode::Brain2);
+  m_Circuits->DeleteFluidPath(BGE::CardiovascularPath::Aorta1ToBrain1);
+  m_Circuits->DeleteFluidPath(BGE::CardiovascularPath::Brain1ToBrain2);
+  m_Circuits->DeleteFluidPath(BGE::CardiovascularPath::Brain1ToGround);
+  m_Circuits->DeleteFluidPath(BGE::CardiovascularPath::Brain2ToVenaCava);
+
+  CombinedCardioCircuit.AddCircuit(CerebralCircuit);
+  // Grab the nodes that we will be connecting between the 2 circuits
+  SEFluidCircuitNode* nAorta1 = CardioCircuit.GetNode(BGE::CardiovascularNode::Aorta1);
+  SEFluidCircuitNode* nVenaCava = CardioCircuit.GetNode(BGE::CardiovascularNode::VenaCava);
+  //LEFT COROTID
+  SEFluidCircuitPath& pAorta1ToLeftCorotid = CombinedCardioCircuit.CreatePath(*nAorta1, nLeftCorotid, BGE::CardiovascularPath::Aorta1ToLeftCorotid);
+  pAorta1ToLeftCorotid.GetResistanceBaseline().SetValue(aorta1ToLeftCorotidResitance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pAorta1ToLeftCorotid.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+  //RIGHT COROTID
+  SEFluidCircuitPath& pAorta1ToRightCorotid = CombinedCardioCircuit.CreatePath(*nAorta1, nRightCorotid, BGE::CardiovascularPath::Aorta1ToRightCorotid);
+  pAorta1ToRightCorotid.GetResistanceBaseline().SetValue(aorta1ToRightCorotidResitance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pAorta1ToRightCorotid.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+  //LEFT BASILAR
+  SEFluidCircuitPath& pAorta1ToLeftBasilar = CombinedCardioCircuit.CreatePath(*nAorta1, nLeftBasilar, BGE::CardiovascularPath::Aorta1ToLeftBasilar);
+  pAorta1ToLeftBasilar.GetResistanceBaseline().SetValue(aorta1ToLeftBasilarResitance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pAorta1ToLeftBasilar.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+  //RIGHT BASILAR
+  SEFluidCircuitPath& pAorta1ToRightBasilar = CombinedCardioCircuit.CreatePath(*nAorta1, nRightBasilar, BGE::CardiovascularPath::Aorta1ToRightBasilar);
+  pAorta1ToRightBasilar.GetResistanceBaseline().SetValue(aorta1ToRightBasilarResitance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pAorta1ToRightBasilar.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+  //THE REST OF THE CONNECTIONS
+  SEFluidCircuitPath& pNeckVeinsToVenaCava = CombinedCardioCircuit.CreatePath(nNeckVeins, *nVenaCava, BGE::CardiovascularPath::NeckVeinsToVenaCava);
+  pNeckVeinsToVenaCava.GetResistanceBaseline().SetValue(neckVeinsToVenaCavaResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
+  pNeckVeinsToVenaCava.SetCardiovascularRegion(CDM::enumResistancePathType::Cerebral);
+
+  // Update the circuit
+  CombinedCardioCircuit.SetNextAndCurrentFromBaselines();
+  CombinedCardioCircuit.StateChange();
+
+
+
+  //---------------------Set up Cerebral Graph (c = compartment, l = liquid link)-------------------
+    //---Set Up Basic Compartments---
+  //LEFT COROTID COMPARTMENTS
+  SELiquidCompartment& cLeftCorotid = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftCorotid);
+  cLeftCorotid.MapNode(nLeftCorotid);
+
+  // LEFT ANTERIOR
+  SELiquidCompartment& cLeftAnteriorArteries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftAnteriorArteries);
+  cLeftAnteriorArteries.MapNode(nLeftAnteriorArteries1);
+  cLeftAnteriorArteries.MapNode(nLeftAnteriorArteries2);
+
+  SELiquidCompartment& cLeftAnteriorCapillaries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftAnteriorCapillaries);
+  cLeftAnteriorCapillaries.MapNode(nLeftAnteriorCapillaries);
+
+  SELiquidCompartment& cLeftAnteriorVeins = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftAnteriorVeins);
+  cLeftAnteriorVeins.MapNode(nLeftAnteriorVeins1);
+  cLeftAnteriorVeins.MapNode(nLeftAnteriorVeins2);
+  cLeftAnteriorVeins.MapNode(nLeftAnteriorVeinsCheck);
+
+  // LEFT MEDIAL
+  SELiquidCompartment& cLeftMedialArteries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftMedialArteries);
+  cLeftMedialArteries.MapNode(nLeftMedialArteries1);
+  cLeftMedialArteries.MapNode(nLeftMedialArteries2);
+
+  SELiquidCompartment& cLeftMedialCapillaries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftMedialCapillaries);
+  cLeftMedialCapillaries.MapNode(nLeftMedialCapillaries);
+
+  SELiquidCompartment& cLeftMedialVeins = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftMedialVeins);
+  cLeftMedialVeins.MapNode(nLeftMedialVeins1);
+  cLeftMedialVeins.MapNode(nLeftMedialVeins2);
+  cLeftMedialVeins.MapNode(nLeftMedialVeinsCheck);
+
+  //RIGHT COROTID COMPARTMENTS
+  SELiquidCompartment& cRightCorotid = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightCorotid);
+  cRightCorotid.MapNode(nRightCorotid);
+
+  // RIGHT ANTERIOR
+  SELiquidCompartment& cRightAnteriorArteries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightAnteriorArteries);
+  cRightAnteriorArteries.MapNode(nRightAnteriorArteries1);
+  cRightAnteriorArteries.MapNode(nRightAnteriorArteries2);
+
+  SELiquidCompartment& cRightAnteriorCapillaries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightAnteriorCapillaries);
+  cRightAnteriorCapillaries.MapNode(nRightAnteriorCapillaries);
+
+  SELiquidCompartment& cRightAnteriorVeins = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightAnteriorVeins);
+  cRightAnteriorVeins.MapNode(nRightAnteriorVeins1);
+  cRightAnteriorVeins.MapNode(nRightAnteriorVeins2);
+  cRightAnteriorVeins.MapNode(nRightAnteriorVeinsCheck);
+
+  // RIGHT MEDIAL
+  SELiquidCompartment& cRightMedialArteries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightMedialArteries);
+  cRightMedialArteries.MapNode(nRightMedialArteries1);
+  cRightMedialArteries.MapNode(nRightMedialArteries2);
+
+  SELiquidCompartment& cRightMedialCapillaries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightMedialCapillaries);
+  cRightMedialCapillaries.MapNode(nRightMedialCapillaries);
+
+  SELiquidCompartment& cRightMedialVeins = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightMedialVeins);
+  cRightMedialVeins.MapNode(nRightMedialVeins1);
+  cRightMedialVeins.MapNode(nRightMedialVeins2);
+  cRightMedialVeins.MapNode(nRightMedialVeinsCheck);
+
+  //LEFT BASILAR COMPARTMENTS
+  SELiquidCompartment& cLeftBasilar = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftBasilar);
+  cLeftBasilar.MapNode(nLeftBasilar);
+
+  // LEFT POSTERIOR
+  SELiquidCompartment& cLeftPosteriorArteries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftPosteriorArteries);
+  cLeftPosteriorArteries.MapNode(nLeftPosteriorArteries1);
+  cLeftPosteriorArteries.MapNode(nLeftPosteriorArteries2);
+
+  SELiquidCompartment& cLeftPosteriorCapillaries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftPosteriorCapillaries);
+  cLeftPosteriorCapillaries.MapNode(nLeftPosteriorCapillaries);
+
+  SELiquidCompartment& cLeftPosteriorVeins = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftPosteriorVeins);
+  cLeftPosteriorVeins.MapNode(nLeftPosteriorVeins1);
+  cLeftPosteriorVeins.MapNode(nLeftPosteriorVeins2);
+  cLeftPosteriorVeins.MapNode(nLeftPosteriorVeinsCheck);
+
+  //RIGHT BASILAR COMPARTMENTS
+  SELiquidCompartment& cRightBasilar = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightBasilar);
+  cRightBasilar.MapNode(nRightBasilar);
+
+  // RIGHT POSTERIOR
+  SELiquidCompartment& cRightPosteriorArteries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightPosteriorArteries);
+  cRightPosteriorArteries.MapNode(nRightPosteriorArteries1);
+  cRightPosteriorArteries.MapNode(nRightPosteriorArteries2);
+
+  SELiquidCompartment& cRightPosteriorCapillaries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightPosteriorCapillaries);
+  cRightPosteriorCapillaries.MapNode(nRightPosteriorCapillaries);
+
+  SELiquidCompartment& cRightPosteriorVeins = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightPosteriorVeins);
+  cRightPosteriorVeins.MapNode(nRightPosteriorVeins1);
+  cRightPosteriorVeins.MapNode(nRightPosteriorVeins2);
+  cRightPosteriorVeins.MapNode(nRightPosteriorVeinsCheck);
+
+  // THE REST OF COMPARTMENTS
+  SELiquidCompartment& cNeckVeins = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::NeckVeins);
+  cNeckVeins.MapNode(nNeckVeins);
+
+  SELiquidCompartment& cSpinalFluid = m_Compartments->CreateLiquidCompartment(BGE::ExtravascularCompartment::CerebralSpinalFluid);
+  cSpinalFluid.MapNode(nSpinalFluid);
+
+
+  //---Set Up SuperCompartments (vascular territories)---
+  SELiquidCompartment& cLeftAnteriorVascularTerritory = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftAnteriorVascularTerritory);
+  cLeftAnteriorVascularTerritory.AddChild(cLeftAnteriorArteries);
+  cLeftAnteriorVascularTerritory.AddChild(cLeftAnteriorCapillaries);
+  cLeftAnteriorVascularTerritory.AddChild(cLeftAnteriorVeins);
+
+  SELiquidCompartment& cLeftMedialVascularTerritory = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftMedialVascularTerritory);
+  cLeftMedialVascularTerritory.AddChild(cLeftMedialArteries);
+  cLeftMedialVascularTerritory.AddChild(cLeftMedialCapillaries);
+  cLeftMedialVascularTerritory.AddChild(cLeftMedialVeins);
+
+  SELiquidCompartment& cRightAnteriorVascularTerritory = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightAnteriorVascularTerritory);
+  cRightAnteriorVascularTerritory.AddChild(cRightAnteriorArteries);
+  cRightAnteriorVascularTerritory.AddChild(cRightAnteriorCapillaries);
+  cRightAnteriorVascularTerritory.AddChild(cRightAnteriorVeins);
+
+  SELiquidCompartment& cRightMedialVascularTerritory = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightMedialVascularTerritory);
+  cRightMedialVascularTerritory.AddChild(cRightMedialArteries);
+  cRightMedialVascularTerritory.AddChild(cRightMedialCapillaries);
+  cRightMedialVascularTerritory.AddChild(cRightMedialVeins);
+
+  SELiquidCompartment& cLeftPosteriorVascularTerritory = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftPosteriorVascularTerritory);
+  cLeftPosteriorVascularTerritory.AddChild(cLeftPosteriorArteries);
+  cLeftPosteriorVascularTerritory.AddChild(cLeftPosteriorCapillaries);
+  cLeftPosteriorVascularTerritory.AddChild(cLeftPosteriorVeins);
+
+  SELiquidCompartment& cRightPosteriorVascularTerritory = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightPosteriorVascularTerritory);
+  cRightPosteriorVascularTerritory.AddChild(cRightPosteriorArteries);
+  cRightPosteriorVascularTerritory.AddChild(cRightPosteriorCapillaries);
+  cRightPosteriorVascularTerritory.AddChild(cRightPosteriorVeins);
+
+
+  //---Set Up SuperSuperCompartments (hemispheres)---
+  SELiquidCompartment& cLeftHemisphere = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::LeftHemisphere);
+  cLeftHemisphere.AddChild(cLeftAnteriorVascularTerritory);
+  cLeftHemisphere.AddChild(cLeftMedialVascularTerritory);
+  cLeftHemisphere.AddChild(cLeftPosteriorVascularTerritory);
+
+  SELiquidCompartment& cRightHemisphere = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::RightHemisphere);
+  cRightHemisphere.AddChild(cRightAnteriorVascularTerritory);
+  cRightHemisphere.AddChild(cRightMedialVascularTerritory);
+  cRightHemisphere.AddChild(cRightPosteriorVascularTerritory);
+
+
+  //---Set Up SuperSuperSuperCompartment (brain)---
+  SELiquidCompartment& cBrain = *m_Compartments->GetLiquidCompartment(BGE::VascularCompartment::Brain);
+  cBrain.GetNodeMapping().Clear();
+  cBrain.AddChild(cLeftHemisphere);
+  cBrain.AddChild(cRightHemisphere);
+
+
+  //---Establishing Compartment Links---
+  //Existing compartments to link with cerebral graph
+  SELiquidCompartment& cAorta = *m_Compartments->GetLiquidCompartment(BGE::VascularCompartment::Aorta);
+  SELiquidCompartment& cVenaCava = *m_Compartments->GetLiquidCompartment(BGE::VascularCompartment::VenaCava);
+
+  //Existing Liquid links to delete
+  m_Compartments->DeleteLiquidLink(BGE::VascularLink::AortaToBrain); //Replace this link
+
+  m_Compartments->DeleteLiquidLink(BGE::VascularLink::BrainToVenaCava); //Replace this link
+  SELiquidCompartmentLink& lNeckVeinsToVenaCava = m_Compartments->CreateLiquidLink(cNeckVeins, cVenaCava, BGE::VascularLink::NeckVeinsToVenaCava);
+  lNeckVeinsToVenaCava.MapPath(pNeckVeinsToVenaCava);
+
+  //LEFT COROTID LIQUID LINKS
+  SELiquidCompartmentLink& lAortaToLeftCorotid = m_Compartments->CreateLiquidLink(cAorta, cLeftCorotid, BGE::VascularLink::AortaToLeftCorotid);
+  lAortaToLeftCorotid.MapPath(pAorta1ToLeftCorotid);
+
+  // LEFT ANTERIOR LIQUID LINKS
+  SELiquidCompartmentLink& lLeftCorotidToLeftAnteriorArteries = m_Compartments->CreateLiquidLink(cLeftCorotid, cLeftAnteriorArteries, BGE::VascularLink::LeftCorotidToLeftAnteriorArteries);
+  lLeftCorotidToLeftAnteriorArteries.MapPath(pLeftCorotidToLeftAnteriorArteries1);
+
+  SELiquidCompartmentLink& lLeftAnteriorArteriesToCapillaries = m_Compartments->CreateLiquidLink(cLeftAnteriorArteries, cLeftAnteriorCapillaries, BGE::VascularLink::LeftAnteriorArteriesToCapillaries);
+  lLeftAnteriorArteriesToCapillaries.MapPath(pLeftAnteriorArteries2ToCapillaries);
+
+  SELiquidCompartmentLink& lLeftAnteriorCapillariesToVeins = m_Compartments->CreateLiquidLink(cLeftAnteriorCapillaries, cLeftAnteriorVeins, BGE::VascularLink::LeftAnteriorCapillariesToVeins);
+  lLeftAnteriorCapillariesToVeins.MapPath(pLeftAnteriorCapillariesToLeftAnteriorVeins1);
+
+  SELiquidCompartmentLink& lLeftAnteriorVeinsToNeckVeins = m_Compartments->CreateLiquidLink(cLeftAnteriorVeins, cNeckVeins, BGE::VascularLink::LeftAnteriorVeinsToNeckVeins);
+  lLeftAnteriorVeinsToNeckVeins.MapPath(pLeftAnteriorVeins2ToNeckVeins);
+
+  // LEFT MEDIAL LIQUID LINKS
+  SELiquidCompartmentLink& lLeftCorotidToLeftMedialArteries = m_Compartments->CreateLiquidLink(cLeftCorotid, cLeftMedialArteries, BGE::VascularLink::LeftCorotidToLeftMedialArteries);
+  lLeftCorotidToLeftMedialArteries.MapPath(pLeftCorotidToLeftMedialArteries1);
+
+  SELiquidCompartmentLink& lLeftMedialArteriesToCapillaries = m_Compartments->CreateLiquidLink(cLeftMedialArteries, cLeftMedialCapillaries, BGE::VascularLink::LeftMedialArteriesToCapillaries);
+  lLeftMedialArteriesToCapillaries.MapPath(pLeftMedialArteries2ToCapillaries);
+
+  SELiquidCompartmentLink& lLeftMedialCapillariesToVeins = m_Compartments->CreateLiquidLink(cLeftMedialCapillaries, cLeftMedialVeins, BGE::VascularLink::LeftMedialCapillariesToVeins);
+  lLeftMedialCapillariesToVeins.MapPath(pLeftMedialCapillariesToLeftMedialVeins1);
+
+  SELiquidCompartmentLink& lLeftMedialVeinsToNeckVeins = m_Compartments->CreateLiquidLink(cLeftMedialVeins, cNeckVeins, BGE::VascularLink::LeftMedialVeinsToNeckVeins);
+  lLeftMedialVeinsToNeckVeins.MapPath(pLeftMedialVeins2ToNeckVeins);
+
+  //RIGHT COROTID LIQUID LINKS
+  SELiquidCompartmentLink& lAortaToRightCorotid = m_Compartments->CreateLiquidLink(cAorta, cRightCorotid, BGE::VascularLink::AortaToRightCorotid);
+  lAortaToRightCorotid.MapPath(pAorta1ToRightCorotid);
+
+  // RIGHT ANTERIOR LIQUID LINKS
+  SELiquidCompartmentLink& lRightCorotidToRightAnteriorArteries = m_Compartments->CreateLiquidLink(cRightCorotid, cRightAnteriorArteries, BGE::VascularLink::RightCorotidToRightAnteriorArteries);
+  lRightCorotidToRightAnteriorArteries.MapPath(pRightCorotidToRightAnteriorArteries1);
+
+  SELiquidCompartmentLink& lRightAnteriorArteriesToCapillaries = m_Compartments->CreateLiquidLink(cRightAnteriorArteries, cRightAnteriorCapillaries, BGE::VascularLink::RightAnteriorArteriesToCapillaries);
+  lRightAnteriorArteriesToCapillaries.MapPath(pRightAnteriorArteries2ToCapillaries);
+
+  SELiquidCompartmentLink& lRightAnteriorCapillariesToVeins = m_Compartments->CreateLiquidLink(cRightAnteriorCapillaries, cRightAnteriorVeins, BGE::VascularLink::RightAnteriorCapillariesToVeins);
+  lRightAnteriorCapillariesToVeins.MapPath(pRightAnteriorCapillariesToRightAnteriorVeins1);
+
+  SELiquidCompartmentLink& lRightAnteriorVeinsToNeckVeins = m_Compartments->CreateLiquidLink(cRightAnteriorVeins, cNeckVeins, BGE::VascularLink::RightAnteriorVeinsToNeckVeins);
+  lRightAnteriorVeinsToNeckVeins.MapPath(pRightAnteriorVeins2ToNeckVeins);
+
+  // RIGHT MEDIAL LIQUID LINKS
+  SELiquidCompartmentLink& lRightCorotidToRightMedialArteries = m_Compartments->CreateLiquidLink(cRightCorotid, cRightMedialArteries, BGE::VascularLink::RightCorotidToRightMedialArteries);
+  lRightCorotidToRightMedialArteries.MapPath(pRightCorotidToRightMedialArteries1);
+
+  SELiquidCompartmentLink& lRightMedialArteriesToCapillaries = m_Compartments->CreateLiquidLink(cRightMedialArteries, cRightMedialCapillaries, BGE::VascularLink::RightMedialArteriesToCapillaries);
+  lRightMedialArteriesToCapillaries.MapPath(pRightMedialArteries2ToCapillaries);
+
+  SELiquidCompartmentLink& lRightMedialCapillariesToVeins = m_Compartments->CreateLiquidLink(cRightMedialCapillaries, cRightMedialVeins, BGE::VascularLink::RightMedialCapillariesToVeins);
+  lRightMedialCapillariesToVeins.MapPath(pRightMedialCapillariesToRightMedialVeins1);
+
+  SELiquidCompartmentLink& lRightMedialVeinsToNeckVeins = m_Compartments->CreateLiquidLink(cRightMedialVeins, cNeckVeins, BGE::VascularLink::RightMedialVeinsToNeckVeins);
+  lRightMedialVeinsToNeckVeins.MapPath(pRightMedialVeins2ToNeckVeins);
+
+  //LEFT BASILAR LIQUID LINKS
+  SELiquidCompartmentLink& lAortaToLeftBasilar = m_Compartments->CreateLiquidLink(cAorta, cLeftBasilar, BGE::VascularLink::AortaToLeftBasilar);
+  lAortaToLeftBasilar.MapPath(pAorta1ToLeftBasilar);
+
+  SELiquidCompartmentLink& lLeftBasilarToLeftCorotid = m_Compartments->CreateLiquidLink(cLeftBasilar, cLeftCorotid, BGE::VascularLink::LeftBasilarToLeftCorotid);
+  lLeftBasilarToLeftCorotid.MapPath(pLeftBasilarToLeftCorotid);
+
+  // LEFT POSTERIOR LIQUID LINKS
+  SELiquidCompartmentLink& lLeftBasilarToLeftPosteriorArteries = m_Compartments->CreateLiquidLink(cLeftBasilar, cLeftPosteriorArteries, BGE::VascularLink::LeftBasilarToLeftPosteriorArteries);
+  lLeftBasilarToLeftPosteriorArteries.MapPath(pLeftBasilarToLeftPosteriorArteries1);
+
+  SELiquidCompartmentLink& lLeftPosteriorArteriesToCapillaries = m_Compartments->CreateLiquidLink(cLeftPosteriorArteries, cLeftPosteriorCapillaries, BGE::VascularLink::LeftPosteriorArteriesToCapillaries);
+  lLeftPosteriorArteriesToCapillaries.MapPath(pLeftPosteriorArteries2ToCapillaries);
+
+  SELiquidCompartmentLink& lLeftPosteriorCapillariesToVeins = m_Compartments->CreateLiquidLink(cLeftPosteriorCapillaries, cLeftPosteriorVeins, BGE::VascularLink::LeftPosteriorCapillariesToVeins);
+  lLeftPosteriorCapillariesToVeins.MapPath(pLeftPosteriorCapillariesToLeftPosteriorVeins1);
+
+  SELiquidCompartmentLink& lLeftPosteriorVeinsToNeckVeins = m_Compartments->CreateLiquidLink(cLeftPosteriorVeins, cNeckVeins, BGE::VascularLink::LeftPosteriorVeinsToNeckVeins);
+  lLeftPosteriorVeinsToNeckVeins.MapPath(pLeftPosteriorVeins2ToNeckVeins);
+
+  //RIGHT BASILAR LIQUID LINKS
+  SELiquidCompartmentLink& lAortaToRightBasilar = m_Compartments->CreateLiquidLink(cAorta, cRightBasilar, BGE::VascularLink::AortaToRightBasilar);
+  lAortaToRightBasilar.MapPath(pAorta1ToRightBasilar);
+
+  SELiquidCompartmentLink& lRightBasilarToRightCorotid = m_Compartments->CreateLiquidLink(cRightBasilar, cRightCorotid, BGE::VascularLink::RightBasilarToRightCorotid);
+  lRightBasilarToRightCorotid.MapPath(pRightBasilarToRightCorotid);
+
+  // RIGHT POSTERIOR LIQUID LINKS
+  SELiquidCompartmentLink& lRightBasilarToRightPosteriorArteries = m_Compartments->CreateLiquidLink(cRightBasilar, cRightPosteriorArteries, BGE::VascularLink::RightBasilarToRightPosteriorArteries);
+  lRightBasilarToRightPosteriorArteries.MapPath(pRightBasilarToRightPosteriorArteries1);
+
+  SELiquidCompartmentLink& lRightPosteriorArteriesToCapillaries = m_Compartments->CreateLiquidLink(cRightPosteriorArteries, cRightPosteriorCapillaries, BGE::VascularLink::RightPosteriorArteriesToCapillaries);
+  lRightPosteriorArteriesToCapillaries.MapPath(pRightPosteriorArteries2ToCapillaries);
+
+  SELiquidCompartmentLink& lRightPosteriorCapillariesToVeins = m_Compartments->CreateLiquidLink(cRightPosteriorCapillaries, cRightPosteriorVeins, BGE::VascularLink::RightPosteriorCapillariesToVeins);
+  lRightPosteriorCapillariesToVeins.MapPath(pRightPosteriorCapillariesToRightPosteriorVeins1);
+
+  SELiquidCompartmentLink& lRightPosteriorVeinsToNeckVeins = m_Compartments->CreateLiquidLink(cRightPosteriorVeins, cNeckVeins, BGE::VascularLink::RightPosteriorVeinsToNeckVeins);
+  lRightPosteriorVeinsToNeckVeins.MapPath(pRightPosteriorVeins2ToNeckVeins);
+  //
+
+
+
+//--------------------------Add compartments and links to cerebral graph------------------------//
+     //Delete cerebral hemorrhage link (re-define after some more testing), otherwise graph will go searching for old BrainVasculature cmpt, which is called by this link
+  m_Compartments->DeleteLiquidLink(BGE::VascularLink::BrainHemorrhage);
+
+
+  //---Add compartments and links to cerebral graph---
+  SELiquidCompartmentGraph& gCerebral = m_Compartments->GetCerebralGraph();
+  gCerebral.AddCompartment(cAorta);
+  gCerebral.AddCompartment(cVenaCava);
+  //LEFT COROTID CEREBRAL GRAPH
+  gCerebral.AddCompartment(cLeftCorotid);
+  gCerebral.AddLink(lAortaToLeftCorotid);
+  //LEFT ANTERIOR CEREBRAL GRAPH
+  gCerebral.AddCompartment(cLeftAnteriorArteries);
+  gCerebral.AddCompartment(cLeftAnteriorCapillaries);
+  gCerebral.AddCompartment(cLeftAnteriorVeins);
+  gCerebral.AddLink(lLeftCorotidToLeftAnteriorArteries);
+  gCerebral.AddLink(lLeftAnteriorArteriesToCapillaries);
+  gCerebral.AddLink(lLeftAnteriorCapillariesToVeins);
+  gCerebral.AddLink(lLeftAnteriorVeinsToNeckVeins);
+  //LEFT MEDIAL CEREBRAL GRAPH
+  gCerebral.AddCompartment(cLeftMedialArteries);
+  gCerebral.AddCompartment(cLeftMedialCapillaries);
+  gCerebral.AddCompartment(cLeftMedialVeins);
+  gCerebral.AddLink(lLeftCorotidToLeftMedialArteries);
+  gCerebral.AddLink(lLeftMedialArteriesToCapillaries);
+  gCerebral.AddLink(lLeftMedialCapillariesToVeins);
+  gCerebral.AddLink(lLeftMedialVeinsToNeckVeins);
+  //RIGHT COROTID CEREBRAL GRAPH
+  gCerebral.AddCompartment(cRightCorotid);
+  gCerebral.AddLink(lAortaToRightCorotid);
+  //RIGHT ANTERIOR CEREBRAL GRAPH
+  gCerebral.AddCompartment(cRightAnteriorArteries);
+  gCerebral.AddCompartment(cRightAnteriorCapillaries);
+  gCerebral.AddCompartment(cRightAnteriorVeins);
+  gCerebral.AddLink(lRightCorotidToRightAnteriorArteries);
+  gCerebral.AddLink(lRightAnteriorArteriesToCapillaries);
+  gCerebral.AddLink(lRightAnteriorCapillariesToVeins);
+  gCerebral.AddLink(lRightAnteriorVeinsToNeckVeins);
+  //RIGHT MEDIAL CEREBRAL GRAPH
+  gCerebral.AddCompartment(cRightMedialArteries);
+  gCerebral.AddCompartment(cRightMedialCapillaries);
+  gCerebral.AddCompartment(cRightMedialVeins);
+  gCerebral.AddLink(lRightCorotidToRightMedialArteries);
+  gCerebral.AddLink(lRightMedialArteriesToCapillaries);
+  gCerebral.AddLink(lRightMedialCapillariesToVeins);
+  gCerebral.AddLink(lRightMedialVeinsToNeckVeins);
+  //LEFT BASILAR CEREBRAL GRAPH
+  gCerebral.AddCompartment(cLeftBasilar);
+  gCerebral.AddLink(lAortaToLeftBasilar);
+  gCerebral.AddLink(lLeftBasilarToLeftCorotid);
+  //LEFT ANTERIOR CEREBRAL GRAPH
+  gCerebral.AddCompartment(cLeftPosteriorArteries);
+  gCerebral.AddCompartment(cLeftPosteriorCapillaries);
+  gCerebral.AddCompartment(cLeftPosteriorVeins);
+  gCerebral.AddLink(lLeftBasilarToLeftPosteriorArteries);
+  gCerebral.AddLink(lLeftPosteriorArteriesToCapillaries);
+  gCerebral.AddLink(lLeftPosteriorCapillariesToVeins);
+  gCerebral.AddLink(lLeftPosteriorVeinsToNeckVeins);
+  //RIGHT BASILAR CEREBRAL GRAPH
+  gCerebral.AddCompartment(cRightBasilar);
+  gCerebral.AddLink(lAortaToRightBasilar);
+  gCerebral.AddLink(lRightBasilarToRightCorotid);
+  //RIGHT ANTERIOR CEREBRAL GRAPH
+  gCerebral.AddCompartment(cRightPosteriorArteries);
+  gCerebral.AddCompartment(cRightPosteriorCapillaries);
+  gCerebral.AddCompartment(cRightPosteriorVeins);
+  gCerebral.AddLink(lRightBasilarToRightPosteriorArteries);
+  gCerebral.AddLink(lRightPosteriorArteriesToCapillaries);
+  gCerebral.AddLink(lRightPosteriorCapillariesToVeins);
+  gCerebral.AddLink(lRightPosteriorVeinsToNeckVeins);
+  // REST OF COMPARTMENTS
+  gCerebral.AddCompartment(cNeckVeins);
+  gCerebral.AddCompartment(cSpinalFluid);
+  gCerebral.AddLink(lNeckVeinsToVenaCava);
+
+  gCerebral.StateChange();
+  //
+
+
+//Remove brain cmpt from active CV graph (because it's discretized into smaller cmpts) and then add cerebral graph
+  m_Compartments->GetActiveCardiovascularGraph().RemoveCompartment(*m_Compartments->GetLiquidCompartment(BGE::VascularCompartment::Brain));
+  m_Compartments->GetActiveCardiovascularGraph().AddGraph(gCerebral);
+  m_Compartments->GetActiveCardiovascularGraph().StateChange();
+}
+
 
 void BioGears::SetupCerebral()
 {
@@ -3408,7 +4478,7 @@ void BioGears::SetupTissue()
   /*
    V = vascular, E = tissue extracellular, I = tissue intracellular
   >> = pressure source (and direction), ~~~ = resistor, || = capacitor, ( = flow source
-  
+
                   I---||----Ground
                   (
                   (
@@ -3416,7 +4486,7 @@ void BioGears::SetupTissue()
                   (
                   (
       Back to Vena cava <--Lymph
-  
+
   */
 
   /////////
@@ -3435,7 +4505,8 @@ void BioGears::SetupTissue()
   e2NodePressure = e3NodePressure - copExtracell_mmHg; //Extracellular colloid osmotic pressure promotes flow from E2 to E3
   if (e3NodePressure > preLymphaticPressureMin_mmHg) {
     l1NodePressure = e3NodePressure;
-  } else {
+  }
+  else {
     l1NodePressure = preLymphaticPressureMin_mmHg;
   }
   l2NodePressure = Lymph.GetPressure(PressureUnit::mmHg);
@@ -3512,7 +4583,8 @@ void BioGears::SetupTissue()
   e2NodePressure = e3NodePressure - copExtracell_mmHg; //Extracellular colloid osmotic pressure promotes flow from E2 to E3
   if (e3NodePressure > preLymphaticPressureMin_mmHg) {
     l1NodePressure = e3NodePressure;
-  } else {
+  }
+  else {
     l1NodePressure = preLymphaticPressureMin_mmHg;
   }
   l2NodePressure = Lymph.GetPressure(PressureUnit::mmHg);
@@ -3577,8 +4649,9 @@ void BioGears::SetupTissue()
   // Brain //
   SEFluidCircuitNode* BrainV;
   if (GetConfiguration().IsCerebralEnabled()) {
-    BrainV = cCombinedCardiovascular.GetNode(BGE::CerebralNode::CerebralCapillaries);
-  } else {
+    BrainV = cCombinedCardiovascular.GetNode(BGE::CerebralNode::RightAnteriorCapillaries);
+  }
+  else {
     BrainV = cCombinedCardiovascular.GetNode(BGE::CardiovascularNode::Brain1);
   }
 
@@ -3595,7 +4668,8 @@ void BioGears::SetupTissue()
   e2NodePressure = e3NodePressure - copExtracell_mmHg; //Extracellular colloid osmotic pressure promotes flow from E2 to E3
   if (e3NodePressure > preLymphaticPressureMin_mmHg) {
     l1NodePressure = e3NodePressure;
-  } else {
+  }
+  else {
     l1NodePressure = preLymphaticPressureMin_mmHg;
   }
   l2NodePressure = Lymph.GetPressure(PressureUnit::mmHg);
@@ -3678,7 +4752,8 @@ void BioGears::SetupTissue()
   e2NodePressure = e3NodePressure - copExtracell_mmHg; //Extracellular colloid osmotic pressure promotes flow from E2 to E3
   if (e3NodePressure > preLymphaticPressureMin_mmHg) {
     l1NodePressure = e3NodePressure;
-  } else {
+  }
+  else {
     l1NodePressure = preLymphaticPressureMin_mmHg;
   }
   l2NodePressure = Lymph.GetPressure(PressureUnit::mmHg);
@@ -3749,7 +4824,8 @@ void BioGears::SetupTissue()
   SEFluidCircuitNode* LeftKidneyV;
   if (!m_Config->IsRenalEnabled()) {
     LeftKidneyV = cCombinedCardiovascular.GetNode(BGE::CardiovascularNode::LeftKidney1);
-  } else {
+  }
+  else {
     LeftKidneyV = cCombinedCardiovascular.GetNode(BGE::RenalNode::LeftGlomerularCapillaries);
   }
 
@@ -3768,7 +4844,8 @@ void BioGears::SetupTissue()
   e2NodePressure = e3NodePressure - copExtracell_mmHg; //Extracellular colloid osmotic pressure promotes flow from E2 to E3
   if (e3NodePressure > preLymphaticPressureMin_mmHg) {
     l1NodePressure = e3NodePressure;
-  } else {
+  }
+  else {
     l1NodePressure = preLymphaticPressureMin_mmHg;
   }
   l2NodePressure = Lymph.GetPressure(PressureUnit::mmHg);
@@ -3848,7 +4925,8 @@ void BioGears::SetupTissue()
   e2NodePressure = e3NodePressure - copExtracell_mmHg; //Extracellular colloid osmotic pressure promotes flow from E2 to E3
   if (e3NodePressure > preLymphaticPressureMin_mmHg) {
     l1NodePressure = e3NodePressure;
-  } else {
+  }
+  else {
     l1NodePressure = preLymphaticPressureMin_mmHg;
   }
   l2NodePressure = Lymph.GetPressure(PressureUnit::mmHg);
@@ -3933,7 +5011,8 @@ void BioGears::SetupTissue()
   e2NodePressure = e3NodePressure - copExtracell_mmHg; //Extracellular colloid osmotic pressure promotes flow from E2 to E3
   if (e3NodePressure > preLymphaticPressureMin_mmHg) {
     l1NodePressure = e3NodePressure;
-  } else {
+  }
+  else {
     l1NodePressure = preLymphaticPressureMin_mmHg;
   }
   l2NodePressure = Lymph.GetPressure(PressureUnit::mmHg);
@@ -4010,7 +5089,8 @@ void BioGears::SetupTissue()
   e2NodePressure = e3NodePressure - copExtracell_mmHg; //Extracellular colloid osmotic pressure promotes flow from E2 to E3
   if (e3NodePressure > preLymphaticPressureMin_mmHg) {
     l1NodePressure = e3NodePressure;
-  } else {
+  }
+  else {
     l1NodePressure = preLymphaticPressureMin_mmHg;
   }
   l2NodePressure = Lymph.GetPressure(PressureUnit::mmHg);
@@ -4087,7 +5167,8 @@ void BioGears::SetupTissue()
   e2NodePressure = e3NodePressure - copExtracell_mmHg; //Extracellular colloid osmotic pressure promotes flow from E2 to E3
   if (e3NodePressure > preLymphaticPressureMin_mmHg) {
     l1NodePressure = e3NodePressure;
-  } else {
+  }
+  else {
     l1NodePressure = preLymphaticPressureMin_mmHg;
   }
   l2NodePressure = Lymph.GetPressure(PressureUnit::mmHg);
@@ -4153,7 +5234,8 @@ void BioGears::SetupTissue()
   SEFluidCircuitNode* RightKidneyV;
   if (!m_Config->IsRenalEnabled()) {
     RightKidneyV = cCombinedCardiovascular.GetNode(BGE::CardiovascularNode::RightKidney1);
-  } else {
+  }
+  else {
     RightKidneyV = cCombinedCardiovascular.GetNode(BGE::RenalNode::RightGlomerularCapillaries);
   }
 
@@ -4172,7 +5254,8 @@ void BioGears::SetupTissue()
   e2NodePressure = e3NodePressure - copExtracell_mmHg; //Extracellular colloid osmotic pressure promotes flow from E2 to E3
   if (e3NodePressure > preLymphaticPressureMin_mmHg) {
     l1NodePressure = e3NodePressure;
-  } else {
+  }
+  else {
     l1NodePressure = preLymphaticPressureMin_mmHg;
   }
   l2NodePressure = Lymph.GetPressure(PressureUnit::mmHg);
@@ -4252,7 +5335,8 @@ void BioGears::SetupTissue()
   e2NodePressure = e3NodePressure - copExtracell_mmHg; //Extracellular colloid osmotic pressure promotes flow from E2 to E3
   if (e3NodePressure > preLymphaticPressureMin_mmHg) {
     l1NodePressure = e3NodePressure;
-  } else {
+  }
+  else {
     l1NodePressure = preLymphaticPressureMin_mmHg;
   }
   l2NodePressure = Lymph.GetPressure(PressureUnit::mmHg);
@@ -4331,7 +5415,8 @@ void BioGears::SetupTissue()
   e2NodePressure = e3NodePressure - copExtracell_mmHg; //Extracellular colloid osmotic pressure promotes flow from E2 to E3
   if (e3NodePressure > preLymphaticPressureMin_mmHg) {
     l1NodePressure = e3NodePressure;
-  } else {
+  }
+  else {
     l1NodePressure = preLymphaticPressureMin_mmHg;
   }
   l2NodePressure = Lymph.GetPressure(PressureUnit::mmHg);
@@ -4412,7 +5497,8 @@ void BioGears::SetupTissue()
   e2NodePressure = e3NodePressure - copExtracell_mmHg; //Extracellular colloid osmotic pressure promotes flow from E2 to E3
   if (e3NodePressure > preLymphaticPressureMin_mmHg) {
     l1NodePressure = e3NodePressure;
-  } else {
+  }
+  else {
     l1NodePressure = preLymphaticPressureMin_mmHg;
   }
   l2NodePressure = Lymph.GetPressure(PressureUnit::mmHg);
