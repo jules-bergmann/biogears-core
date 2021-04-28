@@ -230,11 +230,7 @@ void BioGearsSubstances::InitializeLiquidCompartmentGases()
   InitializeBloodGases(*cmpts.GetLiquidCompartment(BGE::VascularCompartment::Aorta), Hb_total_mM, 0.979121, 0.13668, 0.0286758, 1.24913, 25.8409, 7.4157);
   InitializeBloodGases(*cmpts.GetLiquidCompartment(BGE::VascularCompartment::Bone), Hb_total_mM, 0.811429, 0.0586404, 0.119425, 1.38143, 26.0748, 7.37589);
   if (m_data.GetConfiguration().IsCerebralEnabled()) {
-    InitializeBloodGases(*cmpts.GetLiquidCompartment(BGE::VascularCompartment::CerebralArteries), Hb_total_mM, 0.907482, 0.0788763, 0.0562386, 1.35047, 26.0222, 7.38486);
-    InitializeBloodGases(*cmpts.GetLiquidCompartment(BGE::VascularCompartment::CerebralCapillaries), Hb_total_mM, 0.839259, 0.0629336, 0.111903, 1.37794, 26.069, 7.37689);
-    InitializeBloodGases(*cmpts.GetLiquidCompartment(BGE::VascularCompartment::CerebralVeins), Hb_total_mM, 0.679049, 0.0485416, 0.223764, 1.6691, 26.5149, 7.30101);
-    InitializeBloodGases(*cmpts.GetLiquidCompartment(BGE::VascularCompartment::NeckArteries), Hb_total_mM, 0.979125, 0.136688, 0.0286762, 1.24909, 25.8409, 7.41571);
-    InitializeBloodGases(*cmpts.GetLiquidCompartment(BGE::VascularCompartment::NeckVeins), Hb_total_mM, 0.679995, 0.0485553, 0.223991, 1.66353, 26.5071, 7.30233);
+    ///TODO: update with new circuit
   } else {
     InitializeBloodGases(*cmpts.GetLiquidCompartment(BGE::VascularCompartment::Brain), Hb_total_mM, 0.907482, 0.0788763, 0.0562386, 1.35047, 26.0222, 7.38486);
   }
@@ -283,7 +279,7 @@ void BioGearsSubstances::InitializeLiquidCompartmentGases()
   //Tissues
   InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueCompartment::Bone), *cmpts.GetLiquidCompartment(BGE::VascularCompartment::Bone));
   if (m_data.GetConfiguration().IsCerebralEnabled()) {
-    InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueCompartment::Brain), *cmpts.GetLiquidCompartment(BGE::VascularCompartment::CerebralCapillaries));
+    ///TODO: update with new circuit
   } else {
     InitializeBloodGases(*cmpts.GetTissueCompartment(BGE::TissueCompartment::Brain), *cmpts.GetLiquidCompartment(BGE::VascularCompartment::Brain));
   }

@@ -269,6 +269,8 @@ DEFINE_STATIC_STRING(RightPosteriorVeins);
 //HEMISPHERES
 DEFINE_STATIC_STRING(LeftHemisphere);
 DEFINE_STATIC_STRING(RightHemisphere);
+DEFINE_STATIC_STRING(NeckVeins);
+
 
 
 // Pulmonary
@@ -409,7 +411,7 @@ DEFINE_STATIC_STRING(RightBasilarToRightPosteriorArteries);
 DEFINE_STATIC_STRING(RightPosteriorArteriesToCapillaries);
 DEFINE_STATIC_STRING(RightPosteriorCapillariesToVeins);
 DEFINE_STATIC_STRING(RightPosteriorVeinsToNeckVeins);
-
+DEFINE_STATIC_STRING(NeckVeinsToVenaCava);
 
 // Bone
 DEFINE_STATIC_STRING(AortaToBone);
@@ -528,8 +530,9 @@ static const std::vector<std::string>& GetValues()
   static std::vector<std::string> _values = {
     VenaCavaToRightAtrium, RightAtriumToRightVentricle, RightVentricleToLeftPulmonaryArteries, LeftPulmonaryArteriesToCapillaries, LeftPulmonaryArteriesToVeins, LeftPulmonaryCapillariesToVeins, LeftPulmonaryVeinsToLeftAtrium, RightVentricleToRightPulmonaryArteries, RightPulmonaryArteriesToCapillaries, RightPulmonaryArteriesToVeins, RightPulmonaryCapillariesToVeins, RightPulmonaryVeinsToLeftAtrium, LeftAtriumToLeftVentricle, LeftVentricleToAorta, AortaToBone, BoneToVenaCava, AortaToBrain, BrainToVenaCava, AortaToFat, FatToVenaCava, AortaToLargeIntestine, LargeIntestineToLiver, AortaToLeftArm, LeftArmToVenaCava, AortaToLeftKidney, LeftKidneyToVenaCava, AortaToLeftLeg, LeftLegToVenaCava, AortaToLiver, LiverToVenaCava, AortaToMuscle, MuscleToVenaCava, AortaToMyocardium, MyocardiumToVenaCava, AortaToRightArm, RightArmToVenaCava, AortaToRightKidney, RightKidneyToVenaCava, AortaToRightLeg, RightLegToVenaCava, AortaToSkin, SkinToVenaCava, AortaToSmallIntestine, SmallIntestineToLiver, AortaToSplanchnic, SplanchnicToLiver, AortaToSpleen, SpleenToLiver
 
-    ,
-    AortaToNeckArteries, NeckArteriesToCerebralArteries, CerebralArteriesToCerebralCapillaries, CerebralCapillariesToCerebralVeins, CerebralVeinsToNeckVeins, NeckVeinsToVenaCava
+    ///TODO: update with new circuit paths
+
+    
 
     ,
     BoneVascularToTissue, BrainVascularToTissue, FatVascularToTissue, SmallIntestineVascularToTissue, LargeIntestineVascularToTissue, SplanchnicVascularToTissue, LeftKidneyVascularToTissue, LeftLungVascularToTissue, LiverVascularToTissue, MuscleVascularToTissue, MyocardiumVascularToTissue, RightKidneyVascularToTissue, RightLungVascularToTissue, SkinVascularToTissue, SpleenVascularToTissue

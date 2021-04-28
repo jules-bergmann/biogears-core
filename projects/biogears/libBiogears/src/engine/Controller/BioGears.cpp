@@ -3410,85 +3410,85 @@ void BioGears::SetupCerebral()
   //---------------------Set up Cerebral Graph (c = compartment, l = liquid link)-------------------
   //Compartments
 
-  SELiquidCompartment& cNeckArteries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::NeckArteries);
-  cNeckArteries.MapNode(nNeckArteries);
+  //SELiquidCompartment& cNeckArteries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::NeckArteries);
+  //cNeckArteries.MapNode(nNeckArteries);
 
-  SELiquidCompartment& cCerebralArteries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::CerebralArteries);
-  cCerebralArteries.MapNode(nCerebralArteries1);
-  cCerebralArteries.MapNode(nCerebralArteries2);
+  //SELiquidCompartment& cCerebralArteries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::CerebralArteries);
+  //cCerebralArteries.MapNode(nCerebralArteries1);
+  //cCerebralArteries.MapNode(nCerebralArteries2);
 
-  SELiquidCompartment& cCerebralCapillaries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::CerebralCapillaries);
-  cCerebralCapillaries.MapNode(nCerebralCapillaries);
+  //SELiquidCompartment& cCerebralCapillaries = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::CerebralCapillaries);
+  //cCerebralCapillaries.MapNode(nCerebralCapillaries);
 
-  SELiquidCompartment& cCerebralVeins = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::CerebralVeins);
-  cCerebralVeins.MapNode(nCerebralVeins1);
-  cCerebralVeins.MapNode(nCerebralVeins2);
-  cCerebralVeins.MapNode(nCerebralVeinsCheck);
+  //SELiquidCompartment& cCerebralVeins = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::CerebralVeins);
+  //cCerebralVeins.MapNode(nCerebralVeins1);
+  //cCerebralVeins.MapNode(nCerebralVeins2);
+  //cCerebralVeins.MapNode(nCerebralVeinsCheck);
 
-  SELiquidCompartment& cNeckVeins = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::NeckVeins);
-  cNeckVeins.MapNode(nNeckVeins);
+  //SELiquidCompartment& cNeckVeins = m_Compartments->CreateLiquidCompartment(BGE::VascularCompartment::NeckVeins);
+  //cNeckVeins.MapNode(nNeckVeins);
 
-  SELiquidCompartment& cSpinalFluid = m_Compartments->CreateLiquidCompartment(BGE::ExtravascularCompartment::CerebralSpinalFluid);
-  cSpinalFluid.MapNode(nSpinalFluid);
+  //SELiquidCompartment& cSpinalFluid = m_Compartments->CreateLiquidCompartment(BGE::ExtravascularCompartment::CerebralSpinalFluid);
+  //cSpinalFluid.MapNode(nSpinalFluid);
 
-  SELiquidCompartment& cBrain = *m_Compartments->GetLiquidCompartment(BGE::VascularCompartment::Brain);
-  cBrain.GetNodeMapping().Clear();
-  cBrain.AddChild(cCerebralArteries);
-  cBrain.AddChild(cCerebralCapillaries);
-  cBrain.AddChild(cCerebralVeins);
+  //SELiquidCompartment& cBrain = *m_Compartments->GetLiquidCompartment(BGE::VascularCompartment::Brain);
+  //cBrain.GetNodeMapping().Clear();
+  //cBrain.AddChild(cCerebralArteries);
+  //cBrain.AddChild(cCerebralCapillaries);
+  //cBrain.AddChild(cCerebralVeins);
 
-  //Existing compartments to link with cerebral graph
-  SELiquidCompartment& cAorta = *m_Compartments->GetLiquidCompartment(BGE::VascularCompartment::Aorta);
-  SELiquidCompartment& cVenaCava = *m_Compartments->GetLiquidCompartment(BGE::VascularCompartment::VenaCava);
+  ////Existing compartments to link with cerebral graph
+  //SELiquidCompartment& cAorta = *m_Compartments->GetLiquidCompartment(BGE::VascularCompartment::Aorta);
+  //SELiquidCompartment& cVenaCava = *m_Compartments->GetLiquidCompartment(BGE::VascularCompartment::VenaCava);
 
-  //Liquid Links
-  m_Compartments->DeleteLiquidLink(BGE::VascularLink::AortaToBrain); //Replace this link
+  ////Liquid Links
+  //m_Compartments->DeleteLiquidLink(BGE::VascularLink::AortaToBrain); //Replace this link
 
-  SELiquidCompartmentLink& lAortaToNeckArteries = m_Compartments->CreateLiquidLink(cAorta, cNeckArteries, BGE::VascularLink::AortaToNeckArteries);
-  lAortaToNeckArteries.MapPath(pAorta1ToNeckArteries);
+  //SELiquidCompartmentLink& lAortaToNeckArteries = m_Compartments->CreateLiquidLink(cAorta, cNeckArteries, BGE::VascularLink::AortaToNeckArteries);
+  //lAortaToNeckArteries.MapPath(pAorta1ToNeckArteries);
 
-  SELiquidCompartmentLink& lNeckArteriesToCerebralArteries = m_Compartments->CreateLiquidLink(cNeckArteries, cCerebralArteries, BGE::VascularLink::NeckArteriesToCerebralArteries);
-  lNeckArteriesToCerebralArteries.MapPath(pNeckArteriesToCerebralArteries1);
+  //SELiquidCompartmentLink& lNeckArteriesToCerebralArteries = m_Compartments->CreateLiquidLink(cNeckArteries, cCerebralArteries, BGE::VascularLink::NeckArteriesToCerebralArteries);
+  //lNeckArteriesToCerebralArteries.MapPath(pNeckArteriesToCerebralArteries1);
 
-  SELiquidCompartmentLink& lCerebralArteriesToCapillaries = m_Compartments->CreateLiquidLink(cCerebralArteries, cCerebralCapillaries, BGE::VascularLink::CerebralArteriesToCerebralCapillaries);
-  lCerebralArteriesToCapillaries.MapPath(pCerebralArteries2ToCapillaries);
+  //SELiquidCompartmentLink& lCerebralArteriesToCapillaries = m_Compartments->CreateLiquidLink(cCerebralArteries, cCerebralCapillaries, BGE::VascularLink::CerebralArteriesToCerebralCapillaries);
+  //lCerebralArteriesToCapillaries.MapPath(pCerebralArteries2ToCapillaries);
 
-  SELiquidCompartmentLink& lCerebralCapillariesToVeins = m_Compartments->CreateLiquidLink(cCerebralCapillaries, cCerebralVeins, BGE::VascularLink::CerebralCapillariesToCerebralVeins);
-  lCerebralCapillariesToVeins.MapPath(pCerebralCapillariesToCerebralVeins1);
+  //SELiquidCompartmentLink& lCerebralCapillariesToVeins = m_Compartments->CreateLiquidLink(cCerebralCapillaries, cCerebralVeins, BGE::VascularLink::CerebralCapillariesToCerebralVeins);
+  //lCerebralCapillariesToVeins.MapPath(pCerebralCapillariesToCerebralVeins1);
 
-  SELiquidCompartmentLink& lCerebralVeinsToNeckVeins = m_Compartments->CreateLiquidLink(cCerebralVeins, cNeckVeins, BGE::VascularLink::CerebralVeinsToNeckVeins);
-  lCerebralVeinsToNeckVeins.MapPath(pCerebralVeins2ToNeckVeins);
+  //SELiquidCompartmentLink& lCerebralVeinsToNeckVeins = m_Compartments->CreateLiquidLink(cCerebralVeins, cNeckVeins, BGE::VascularLink::CerebralVeinsToNeckVeins);
+  //lCerebralVeinsToNeckVeins.MapPath(pCerebralVeins2ToNeckVeins);
 
-  m_Compartments->DeleteLiquidLink(BGE::VascularLink::BrainToVenaCava); //Replace this link
-  SELiquidCompartmentLink& lNeckVeinsToVenaCava = m_Compartments->CreateLiquidLink(cNeckVeins, cVenaCava, BGE::VascularLink::NeckVeinsToVenaCava);
-  lNeckVeinsToVenaCava.MapPath(pNeckVeinsToVenaCava);
+  //m_Compartments->DeleteLiquidLink(BGE::VascularLink::BrainToVenaCava); //Replace this link
+  //SELiquidCompartmentLink& lNeckVeinsToVenaCava = m_Compartments->CreateLiquidLink(cNeckVeins, cVenaCava, BGE::VascularLink::NeckVeinsToVenaCava);
+  //lNeckVeinsToVenaCava.MapPath(pNeckVeinsToVenaCava);
 
-  //Delete cerebral hemorrhage link (re-define after some more testing), otherwise graph will go searching for old BrainVasculature cmpt, which is called by this link
-  m_Compartments->DeleteLiquidLink(BGE::VascularLink::BrainHemorrhage);
+  ////Delete cerebral hemorrhage link (re-define after some more testing), otherwise graph will go searching for old BrainVasculature cmpt, which is called by this link
+  //m_Compartments->DeleteLiquidLink(BGE::VascularLink::BrainHemorrhage);
 
-  //Add compartments and links to cerebral graph
-  SELiquidCompartmentGraph& gCerebral = m_Compartments->GetCerebralGraph();
-  gCerebral.AddCompartment(cAorta);
-  gCerebral.AddCompartment(cVenaCava);
-  gCerebral.AddCompartment(cNeckArteries);
-  gCerebral.AddCompartment(cCerebralArteries);
-  gCerebral.AddCompartment(cCerebralCapillaries);
-  gCerebral.AddCompartment(cCerebralVeins);
-  gCerebral.AddCompartment(cNeckVeins);
-  gCerebral.AddCompartment(cSpinalFluid);
-  gCerebral.AddLink(lAortaToNeckArteries);
-  gCerebral.AddLink(lNeckArteriesToCerebralArteries);
-  gCerebral.AddLink(lCerebralArteriesToCapillaries);
-  gCerebral.AddLink(lCerebralCapillariesToVeins);
-  gCerebral.AddLink(lCerebralVeinsToNeckVeins);
-  gCerebral.AddLink(lNeckVeinsToVenaCava);
+  ////Add compartments and links to cerebral graph
+  //SELiquidCompartmentGraph& gCerebral = m_Compartments->GetCerebralGraph();
+  //gCerebral.AddCompartment(cAorta);
+  //gCerebral.AddCompartment(cVenaCava);
+  //gCerebral.AddCompartment(cNeckArteries);
+  //gCerebral.AddCompartment(cCerebralArteries);
+  //gCerebral.AddCompartment(cCerebralCapillaries);
+  //gCerebral.AddCompartment(cCerebralVeins);
+  //gCerebral.AddCompartment(cNeckVeins);
+  //gCerebral.AddCompartment(cSpinalFluid);
+  //gCerebral.AddLink(lAortaToNeckArteries);
+  //gCerebral.AddLink(lNeckArteriesToCerebralArteries);
+  //gCerebral.AddLink(lCerebralArteriesToCapillaries);
+  //gCerebral.AddLink(lCerebralCapillariesToVeins);
+  //gCerebral.AddLink(lCerebralVeinsToNeckVeins);
+  //gCerebral.AddLink(lNeckVeinsToVenaCava);
 
-  gCerebral.StateChange();
+  //gCerebral.StateChange();
 
-  //Remove brain cmpt from active CV graph (because it's discretized into smaller cmpts) and then add cerebral graph
-  m_Compartments->GetActiveCardiovascularGraph().RemoveCompartment(*m_Compartments->GetLiquidCompartment(BGE::VascularCompartment::Brain));
-  m_Compartments->GetActiveCardiovascularGraph().AddGraph(gCerebral);
-  m_Compartments->GetActiveCardiovascularGraph().StateChange();
+  ////Remove brain cmpt from active CV graph (because it's discretized into smaller cmpts) and then add cerebral graph
+  //m_Compartments->GetActiveCardiovascularGraph().RemoveCompartment(*m_Compartments->GetLiquidCompartment(BGE::VascularCompartment::Brain));
+  //m_Compartments->GetActiveCardiovascularGraph().AddGraph(gCerebral);
+  //m_Compartments->GetActiveCardiovascularGraph().StateChange();
 }
 
 void BioGears::SetupRenal()
