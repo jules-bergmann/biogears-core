@@ -152,4 +152,6 @@ add_subdirectory(circuit_profiler)
 add_subdirectory(zip)
 add_subdirectory(cli)
 add_subdirectory(website)
+add_subdirectory(mltest)
+
 
