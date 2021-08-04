@@ -82,7 +82,7 @@ if(${PREFIX}_BUILD_STATIC)
         ${CMAKE_DL_LIBS}
   )
   target_link_libraries(lib${PROJECT_NAME} Biogears::common ${${PREFIX}_LIBS} )
-  add_dependencies(lib${PROJECT_NAME} ${XSD_TARGETS} prepare_runtime_dir)
+  add_dependencies(lib${PROJECT_NAME} xsd_bindings prepare_runtime_dir)
 
 else()
   ###############################################################################
