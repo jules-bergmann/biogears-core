@@ -34,7 +34,7 @@ specific language governing permissions and limitations under the License.
 
 #include <biogears/engine/BioGearsPhysiologyEngine.h>
 #include <biogears/engine/Controller/BioGears.h>
-#include "units.h"
+
 #include "biogears/math/angles.h"
 namespace BGE = mil::tatrc::physiology::biogears;
 
