@@ -20,6 +20,7 @@ specific language governing permissions and limitations under the License.
 
 #pragma once
 
+#include <cstddef>
 #include <biogears/exports.h>
 namespace biogears{
 class CUnitDimension;
