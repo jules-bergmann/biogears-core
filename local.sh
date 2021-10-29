@@ -57,11 +57,15 @@ while true; do
       break
       ;;
     *)
-      echo "arg processing error"
+      echo "Unexpected arg $1"
       exit
       ;;
   esac
 done
+
+echo "remaining: $@"
+echo "count: $#"
+
 
 if [[ $do_config -eq 1 ]]; then
   $dry cmake -G "Ninja"					\
@@ -69,10 +73,16 @@ if [[ $do_config -eq 1 ]]; then
 	-DCMAKE_PREFIX_PATH=$aamv/ref/external		\
 	-DCMAKE_BUILD_TYPE=$build_type			\
 	-DBiogears_BUILD_JAVATOOLS=OFF			\
-	-DBiogears_BUILD_HOWTOS=OFF			\
+	-DBiogears_BUILD_HOWTOS=ON			\
 	..
 fi
 
 if [[ $do_make -eq 1 ]]; then
-  $dry cmake --build . --config Release --target bg-cli bg-scenario
+  if [[ $# -eq 0 ]]; then
+    target="bg-cli bg-scenario"
+  else
+    target=$@
+  fi
+  echo "make target: $target"
+  $dry cmake --build . --config Release --target $target
 fi
