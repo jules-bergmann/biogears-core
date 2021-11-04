@@ -20,6 +20,14 @@ aamv=/home/idies/workspace/Storage/jbergma8/aamv
 #
 build_type=Release
 
+#
+# cores -- number of jobs/cores to run in parallel
+#  - default to 4 to be nice to crunchr
+#
+cores=4
+
+
+
 do_make=0
 do_config=0
 dry=''
@@ -51,6 +59,10 @@ while true; do
     --dry)
       dry=echo
       shift
+      ;;
+    --cores)
+      cores="$2"
+      shift 2
       ;;
     --)
       shift
@@ -84,5 +96,5 @@ if [[ $do_make -eq 1 ]]; then
     target=$@
   fi
   echo "make target: $target"
-  $dry cmake --build . --config Release --target $target
+  $dry cmake --build . --config Release --parallel $cores --target $target 
 fi
