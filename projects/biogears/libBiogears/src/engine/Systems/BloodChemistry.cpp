@@ -32,6 +32,7 @@ specific language governing permissions and limitations under the License.
 #include <biogears/cdm/system/physiology/SEDrugSystem.h>
 #include <biogears/engine/BioGearsPhysiologyEngine.h>
 #include <biogears/engine/Controller/BioGears.h>
+#include <biogears/xver.h>
 namespace BGE = mil::tatrc::physiology::biogears;
 
 #pragma warning(disable : 4786)
@@ -96,6 +97,8 @@ void BloodChemistry::Clear()
   m_d3Agglutinate_ct = 0.0;
   m_4Agglutinate_ct = 0.0;
   m_RemovedRBC_ct = 0.0;
+
+  m_otherCations_mmol_Per_L = +3.2;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -368,9 +371,31 @@ void BloodChemistry::Process()
   m_data.GetSubstances().GetTriacylglycerol().GetBloodConcentration().Set(m_venaCavaTriacylglycerol->GetConcentration());
   m_data.GetSubstances().GetUrea().GetBloodConcentration().Set(m_venaCavaUrea->GetConcentration());
 
-  double otherIons_mmol_Per_L = -5.4; //Na, K, and Cl baseline concentrations give SID = 45.83, we assume baseline SID = 40.5, thus "other ions" (i.e. Mg, Ca, Ketones) make up -5.3 mmol_Per_L equivalent of charge
-  double strongIonDifference_mmol_Per_L = m_venaCavaSodium->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + m_venaCavaPotassium->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) - (m_venaCavaChloride->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + (m_venaCavaLactate->GetMolarity(AmountPerVolumeUnit::mmol_Per_L))) + otherIons_mmol_Per_L;
-  //GetStrongIonDifference().SetValue(strongIonDifference_mmol_Per_L, AmountPerVolumeUnit::mmol_Per_L);
+#if _XVER_ >= 7
+  // SIDe = [Na+] + [K+] + [Ca2+] + [Mg2+] - [Cl-] - [Lactate-] (- [Ketoacids-])
+  // double otherCations_mmol_Per_L = +3.2; // [Ca2+] + [Mg2+]
+  double strongIonDifference_apparent_mmol_Per_L =
+       m_venaCavaSodium->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) 
+     + m_venaCavaPotassium->GetMolarity(AmountPerVolumeUnit::mmol_Per_L)
+     - m_venaCavaChloride->GetMolarity(AmountPerVolumeUnit::mmol_Per_L)
+     - m_venaCavaLactate->GetMolarity(AmountPerVolumeUnit::mmol_Per_L)
+     - m_venaCavaKetones->GetMolarity(AmountPerVolumeUnit::mmol_Per_L);
+
+  if (1) {
+    m_otherCations_mmol_Per_L = +3.35;
+  } else if (m_data.GetState() <= EngineState::AtSecondaryStableState) {
+    m_otherCations_mmol_Per_L = 40.5 - strongIonDifference_apparent_mmol_Per_L;
+  }
+
+  strongIonDifference_apparent_mmol_Per_L += m_otherCations_mmol_Per_L;
+  GetStrongIonDifference().SetValue(strongIonDifference_apparent_mmol_Per_L, AmountPerVolumeUnit::mmol_Per_L);
+  m_SID = strongIonDifference_apparent_mmol_Per_L;
+#else
+  m_otherCations_mmol_Per_L = -5.4; //Na, K, and Cl baseline concentrations give SID = 45.83, we assume baseline SID = 40.5, thus "other ions" (i.e. Mg, Ca, Ketones) make up -5.3 mmol_Per_L equivalent of charge
+  double strongIonDifference_mmol_Per_L = m_venaCavaSodium->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + m_venaCavaPotassium->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) - (m_venaCavaChloride->GetMolarity(AmountPerVolumeUnit::mmol_Per_L) + (m_venaCavaLactate->GetMolarity(AmountPerVolumeUnit::mmol_Per_L))) + otherCations_mmol_Per_L;
+  // GetStrongIonDifference().SetValue(strongIonDifference_mmol_Per_L, AmountPerVolumeUnit::mmol_Per_L);
+  m_SID = strongIonDifference_mmol_Per_L;
+#endif
 
   // Calculate pH
   GetArterialBloodPH().Set(m_aorta->GetPH());

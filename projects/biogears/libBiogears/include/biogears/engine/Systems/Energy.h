@@ -37,6 +37,7 @@ class BioGears;
 class BIOGEARS_API Energy : public SEEnergySystem, public BioGearsSystem {
   friend class BioGears;
   friend class BioGearsEngineTest;
+  friend class PhysiologyEngineTrack;
 
 protected:
   static auto make_unique(BioGears& bg) -> std::unique_ptr<Energy>;
@@ -121,6 +122,11 @@ private:
   SEThermalCircuit* m_InternalTemperatureCircuit;
   SEThermalCircuit* m_TemperatureCircuit;
   SEThermalCircuitCalculator m_circuitCalculator;
+
+  //JPB
+  double m_has_exercise;
+  double m_exercise_energy_inc_kcal_Per_day;
+  double m_exerciseIntensity;
 
 };
 }

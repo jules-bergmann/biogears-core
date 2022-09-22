@@ -49,6 +49,7 @@ specific language governing permissions and limitations under the License.
 
 #include <biogears/engine/BioGearsPhysiologyEngine.h>
 #include <biogears/engine/Controller/BioGears.h>
+#include <biogears/xver.h>
 namespace BGE = mil::tatrc::physiology::biogears;
 
 namespace biogears {
@@ -150,6 +151,9 @@ void Cardiovascular::Clear()
   m_OverrideRHEMax_Conformant_mmHg = 0.0;
 
   m_overrideTime_s = 0.0;
+
+  m_Set_HR_Per_Min_prev = 0.0;
+  m_Set_HR_Per_Min      = 0.0;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -163,6 +167,8 @@ void Cardiovascular::Initialize()
   m_HeartRhythm = CDM::enumHeartRhythm::NormalSinus;
 
   m_StartSystole = true;
+  m_SystoleCount = 0;
+  m_SystoleCountTime = 0;
   m_HeartFlowDetected = false;
   m_CardiacCyclePeriod_s = 0.8; //seconds per beat
   m_CardiacCycleDiastolicVolume_mL = 0.0;
@@ -352,6 +358,8 @@ void Cardiovascular::SetUp()
   m_patient = &m_data.GetPatient();
   m_minIndividialSystemicResistance__mmHg_s_Per_mL = 0.1;
   m_OverrideHR_Conformant_Per_min = m_patient->GetHeartRateBaseline(FrequencyUnit::Per_min);
+  m_Set_HR_Per_Min_prev = m_patient->GetHeartRateBaseline(FrequencyUnit::Per_min);
+  m_Set_HR_Per_Min      = m_patient->GetHeartRateBaseline(FrequencyUnit::Per_min);
 
   //Circuits
   m_CirculatoryCircuit = &m_data.GetCircuits().GetActiveCardiovascularCircuit();
@@ -1539,7 +1547,10 @@ void Cardiovascular::HeartDriver()
   if (!m_patient->IsEventActive(CDM::enumPatientEvent::CardiacArrest)) {
     if (m_CurrentCardiacCycleTime_s + m_dT_s > m_CardiacCyclePeriod_s) {
       m_StartSystole = true; // A new cardiac cycle will begin next time step
+#if _XVER_ < 3
+      // Remove for V3
       m_CurrentCardiacCycleDuration_s += (m_CardiacCyclePeriod_s - m_CurrentCardiacCycleTime_s); //Add leftover time to current duration so Calc Heart Rate has an accuracte notion of how long this cycle lasted
+#endif
     }
     AdjustVascularTone();
     CalculateHeartElastance();
@@ -1674,6 +1685,9 @@ void Cardiovascular::BeginCardiacCycle()
   BLIM(HeartDriverFrequency_Per_Min, m_data.GetPatient().GetHeartRateMinimum(FrequencyUnit::Per_min), m_data.GetPatient().GetHeartRateMaximum(FrequencyUnit::Per_min));
   m_OverrideHR_Conformant_Per_min = HeartDriverFrequency_Per_Min;
 
+  m_Set_HR_Per_Min_prev = m_Set_HR_Per_Min;
+  m_Set_HR_Per_Min      = HeartDriverFrequency_Per_Min;
+
   //Apply heart failure effects
   m_LeftHeartElastanceMax_mmHg_Per_mL *= m_LeftHeartElastanceModifier;
 
@@ -1699,6 +1713,8 @@ void Cardiovascular::BeginCardiacCycle()
   // Reset the systole flag and the cardiac cycle time
   m_StartSystole = false;
   m_CurrentCardiacCycleTime_s = 0.0;
+  m_SystoleCount = m_SystoleCount + 1;
+  m_SystoleCountTime = m_data.GetSimulationTime().GetValue(TimeUnit::s);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -2178,8 +2194,14 @@ void Cardiovascular::AdjustVascularTone()
       Path->GetNextResistance().SetValue(UpdatedResistance_mmHg_s_Per_mL, FlowResistanceUnit::mmHg_s_Per_mL);
     }
 
+#if _XVER_ < 6
+    // V6 move outside
     MetabolicToneResponse();
+#endif
   }
+#if _XVER >= 6
+  MetabolicToneResponse(); // V6
+#endif
 }
 //--------------------------------------------------------------------------------------------------
 /// \brief
@@ -2200,7 +2222,16 @@ void Cardiovascular::CalculateHeartRate()
       && m_data.GetActions().GetPatientActions().GetOverride()->GetOverrideConformance() == CDM::enumOnOff::Off) {
     HeartRate_Per_s = m_data.GetActions().GetPatientActions().GetOverride()->GetHeartRateOverride(FrequencyUnit::Per_s);
   } else {
+#if _XVER_ == 1 || _XVER_ == 3
+    // V1, V3
     HeartRate_Per_s = 1.0 / (m_CurrentCardiacCycleDuration_s - m_dT_s);
+#elif _XVER_ == 2
+    // V2
+    HeartRate_Per_s = m_Set_HR_Per_Min_prev / 60.0;
+#else // _XVER_ >= 4
+    // V4, ...
+    HeartRate_Per_s = 1.0 / (m_CurrentCardiacCycleDuration_s);
+#endif
   }
   GetHeartRate().SetValue(HeartRate_Per_s * 60.0, FrequencyUnit::Per_min);
   m_CurrentCardiacCycleDuration_s = 0.0; //Incremented each time step in HeartDriver

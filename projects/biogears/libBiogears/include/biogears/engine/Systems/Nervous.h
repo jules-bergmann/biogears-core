@@ -30,6 +30,7 @@ class SEPatient;
 class BIOGEARS_API Nervous : public SENervousSystem, public BioGearsSystem {
   friend class BioGears;
   friend class BioGearsEngineTest;
+  friend class PhysiologyEngineTrack;
 
 protected:
   static auto make_unique(BioGears& bg) -> std::unique_ptr<Nervous>;

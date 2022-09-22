@@ -49,6 +49,7 @@ specific language governing permissions and limitations under the License.
 
 #include <biogears/engine/BioGearsPhysiologyEngine.h>
 #include <biogears/engine/Controller/BioGears.h>
+#include <biogears/xver.h>
 namespace BGE = mil::tatrc::physiology::biogears;
 
 namespace biogears {
@@ -91,6 +92,8 @@ void Energy::Clear()
   m_BicarbonateMolarity_mmol_Per_L.Reset();
   m_previousWeightPack_kg = 0.0;
   m_packOn = false;
+  m_has_exercise = 0;
+  m_exercise_energy_inc_kcal_Per_day = 0;
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -126,6 +129,8 @@ void Energy::Initialize()
 
   m_previousWeightPack_kg = 0.0;
   m_packOn = false;
+  m_has_exercise = 0;
+  m_exercise_energy_inc_kcal_Per_day = 0;
 }
 
 bool Energy::Load(const CDM::BioGearsEnergySystemData& in)
@@ -243,6 +248,8 @@ void Energy::Exercise()
   // Check for exercise call and only try to get intensity/desired work rate if the exercise action is active.
   auto exercise = m_PatientActions->GetExercise();
   if (m_PatientActions->HasExercise()) {
+    m_has_exercise = +1;
+    m_exercise_energy_inc_kcal_Per_day = 0;
     switch (exercise->GetExerciseType()) {
     case SEExercise::GENERIC: {
       //Model Code
@@ -336,20 +343,37 @@ void Energy::Exercise()
       packOn = true;
     }
   } else {
+    m_has_exercise = -1;
+    m_exercise_energy_inc_kcal_Per_day = 0;
     if (packOn && m_previousWeightPack_kg > 0.0) {
       m_Patient->GetWeight().DecrementValue(m_previousWeightPack_kg, MassUnit::kg);
       packOn = false;
     }
+#if _XVER_ >= 5
+#else
     return;
+#endif
   }
-  exercise->GetGenericExercise().Intensity.SetValue(exerciseIntensity);
+  if (exercise != nullptr) exercise->GetGenericExercise().Intensity.SetValue(exerciseIntensity); // V5 - check if exercise is not null
   // The MetabolicRateGain is used to ramp the metabolic rate to the value specified by the user's exercise intensity.
   const double MetabolicRateGain = m_dT_s;
   const double workRateDesired_W = exerciseIntensity * maxWorkRate_W;
   const double TotalMetabolicRateSetPoint_kcal_Per_day = basalMetabolicRate_kcal_Per_day + workRateDesired_W * kcal_Per_day_Per_Watt;
   const double exerciseEnergyIncrement_kcal_Per_day = MetabolicRateGain * (TotalMetabolicRateSetPoint_kcal_Per_day - currentMetabolicRate_kcal_Per_day);
 
+  m_exerciseIntensity = exerciseIntensity;
+  m_exercise_energy_inc_kcal_Per_day = exerciseEnergyIncrement_kcal_Per_day;
+
+#if _XVER_ >= 5
+  GetExerciseEnergyDemand().SetValue(
+	std::max(
+		TotalMetabolicRateSetPoint_kcal_Per_day - (currentMetabolicRate_kcal_Per_day + exerciseEnergyIncrement_kcal_Per_day),
+		0.0),
+	PowerUnit::kcal_Per_day);
+#else
   GetExerciseEnergyDemand().IncrementValue(exerciseEnergyIncrement_kcal_Per_day, PowerUnit::kcal_Per_day);
+#endif
+
   GetTotalMetabolicRate().IncrementValue(exerciseEnergyIncrement_kcal_Per_day, PowerUnit::kcal_Per_day);
 }
 

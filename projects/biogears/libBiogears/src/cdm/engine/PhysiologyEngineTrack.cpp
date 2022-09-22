@@ -10,6 +10,10 @@ CONDITIONS OF ANY KIND, either express or implied. See the License for the
 specific language governing permissions and limitations under the License.
 **************************************************************************************/
 #include <biogears/cdm/engine/PhysiologyEngineTrack.h>
+#include <biogears/engine/Systems/Nervous.h>
+#include <biogears/engine/Systems/Cardiovascular.h>
+#include <biogears/engine/Systems/Energy.h>
+#include <biogears/engine/Systems/BloodChemistry.h>
 
 #include <biogears/cdm/compartment/SECompartmentManager.h>
 #include <biogears/cdm/compartment/fluid/SEGasCompartment.h>
@@ -48,6 +52,7 @@ specific language governing permissions and limitations under the License.
 #include <biogears/cdm/system/physiology/SETissueSystem.h>
 #include <biogears/cdm/utils/DataTrack.h>
 #include <biogears/engine/BioGearsPhysiologyEngine.h>
+#include <biogears/xver.h>
 
 namespace std {
 template class vector<biogears::SESystem*>;
@@ -78,16 +83,16 @@ PhysiologyEngineTrack::PhysiologyEngineTrack(PhysiologyEngine& engine)
 
   SEBloodChemistrySystem* bchem = (SEBloodChemistrySystem*)engine.GetBloodChemistrySystem();
   if (bchem != nullptr)
-    m_PhysiologySystems.push_back(bchem);
+    m_PhysiologySystems.push_back(bchem); // 0
   SECardiovascularSystem* cv = (SECardiovascularSystem*)engine.GetCardiovascularSystem();
   if (cv != nullptr)
-    m_PhysiologySystems.push_back(cv);
+    m_PhysiologySystems.push_back(cv); // 1
   SEEndocrineSystem* endo = (SEEndocrineSystem*)engine.GetEndocrineSystem();
   if (endo != nullptr)
     m_PhysiologySystems.push_back(endo);
   SEEnergySystem* energy = (SEEnergySystem*)engine.GetEnergySystem();
   if (energy != nullptr)
-    m_PhysiologySystems.push_back(energy);
+    m_PhysiologySystems.push_back(energy); // 3
   SERenalSystem* renal = (SERenalSystem*)engine.GetRenalSystem();
   if (renal != nullptr)
     m_PhysiologySystems.push_back(renal);
@@ -211,6 +216,7 @@ SEDataRequestScalar* PhysiologyEngineTrack::GetScalar(SEDataRequest* dr)
   return nullptr;
 }
 
+
 void PhysiologyEngineTrack::SetupRequests(bool append)
 {
   bool isOpen = m_ResultsStream.is_open();
@@ -223,6 +229,148 @@ void PhysiologyEngineTrack::SetupRequests(bool append)
     }
     m_ForceConnection = false;
   }
+  m_DataTrack.Probe("_XVER_", 0);
+  m_DataTrack.SetFormatting("_XVER_", 6);
+
+  m_DataTrack.Probe("m_HeartRateModifierSympathetic", 0);
+  m_DataTrack.Probe("m_HeartRateModifierVagal", 0);
+  m_DataTrack.Probe("m_VagalSignal_Hz", 0);
+  m_DataTrack.Probe("m_SympatheticSinoatrialSignal_Hz", 0);
+  m_DataTrack.Probe("m_AfferentBaroreceptorCarotid_Hz", 0);
+  m_DataTrack.Probe("m_AfferentBaroreceptorAortic_Hz", 0);
+  m_DataTrack.Probe("m_AfferentChemoreceptor_Hz", 0);
+  m_DataTrack.Probe("m_AfferentPulmonaryStretchReceptor_Hz", 0);
+  m_DataTrack.Probe("m_AfferentCardiopulmonary_Hz", 0);
+  m_DataTrack.Probe("m_CarotidBaroreceptorStrain", 0);
+  m_DataTrack.Probe("m_AorticBaroreceptorStrain", 0);
+  m_DataTrack.Probe("m_ChemoreceptorFiringRateSetPoint_Hz", 0);
+  m_DataTrack.Probe("m_CardiopulmonaryInputBaseline_mmHg", 0);
+  m_DataTrack.Probe("m_CardiopulmonaryInput_mmHg", 0);
+  m_DataTrack.Probe("m_MeanLungVolume_L", 0);
+  m_DataTrack.Probe("m_BaroreceptorOperatingPoint_mmHg", 0);
+
+  m_DataTrack.Probe("m_HeartOxygenBaseline", 0);
+  m_DataTrack.Probe("m_MuscleOxygenBaseline", 0);
+  m_DataTrack.Probe("m_OxygenAutoregulatorHeart", 0);
+  m_DataTrack.Probe("m_OxygenAutoregulatorMuscle", 0);
+  m_DataTrack.Probe("m_HypoxiaThresholdHeart", 0);
+  m_DataTrack.Probe("m_HypoxiaThresholdPeripheral", 0);
+  m_DataTrack.Probe("m_HypercapniaThresholdHeart", 0);
+  m_DataTrack.Probe("m_HypercapniaThresholdPeripheral", 0);
+  // m_DataTrack.Probe("metabolicFraction", 0);
+  m_DataTrack.Probe("m_SympatheticPeripheralSignal_Hz", 0);
+  m_DataTrack.Probe("m_SympatheticPeripheralSignalBaseline_Hz", 0);
+  m_DataTrack.Probe("m_SympatheticPeripheralSignalFatigue", 0);
+  m_DataTrack.Probe("m_SympatheticSinoatrialSignalBaseline_Hz", 0);
+  m_DataTrack.Probe("m_ResistanceModifierMuscle", 0);
+
+  m_DataTrack.Probe("m_OverrideHR_Conformant_Per_min", 0);
+  m_DataTrack.Probe("m_CardiacCyclePeriod_s", 0);
+  m_DataTrack.Probe("m_StartSystole", 0);
+  m_DataTrack.Probe("m_SystoleCount", 0);
+  m_DataTrack.Probe("m_SystoleCountTime", 0);
+  m_DataTrack.Probe("m_CurrentCardiacCycleTime_s", 0);
+  m_DataTrack.Probe("m_CurrentCardiacCycleDuration_s", 0);
+  m_DataTrack.Probe("m_HeartFlowDetected", 0);
+  m_DataTrack.Probe("m_LHeartFlow_ml_Per_s", 0);
+  m_DataTrack.Probe("m_Set_HR_Per_Min_prev", 0);
+  m_DataTrack.Probe("m_Set_HR_Per_Min", 0);
+  m_DataTrack.Probe("m_LeftHeartElastanceModifier", 0);
+  m_DataTrack.Probe("m_LeftHeartElastanceMin_mmHg_Per_mL", 0);
+  m_DataTrack.Probe("m_LeftHeartElastanceMax_mmHg_Per_mL", 0);
+  m_DataTrack.Probe("m_LeftHeartElastance_mmHg_Per_mL", 0);
+  m_DataTrack.Probe("m_RightHeartElastanceMin_mmHg_Per_mL", 0);
+  m_DataTrack.Probe("m_RightHeartElastanceMax_mmHg_Per_mL", 0);
+  m_DataTrack.Probe("m_RightHeartElastance_mmHg_Per_mL", 0);
+  m_DataTrack.Probe("m_pAortaToMuscle_R", 0);
+  m_DataTrack.Probe("m_pAortaToMuscle_next_R", 0);
+  m_DataTrack.Probe("m_pAortaToMuscle_baseline_R", 0);
+  m_DataTrack.Probe("m_pAortaToMuscle_flow", 0);
+  m_DataTrack.Probe("m_minIndividualSystemicResistance__mmHg_s_Per_mL", 0);
+
+  m_DataTrack.Probe("m_has_exercise", 0);
+  m_DataTrack.Probe("m_exercise_energy_inc_kcal_Per_day", 0);
+  m_DataTrack.Probe("m_exerciseIntensity", 0);
+
+  // BloodChem
+  m_DataTrack.Probe("m_SID", 0);
+  m_DataTrack.Probe("m_otherCations_mmol_Per_L", 0);
+  m_DataTrack.Probe("vcNa", 0);
+  m_DataTrack.Probe("vcK", 0);
+  m_DataTrack.Probe("vcCl", 0);
+  m_DataTrack.Probe("vcLac", 0);
+  m_DataTrack.Probe("vcKetones", 0);
+
+  m_DataTrack.SetFormatting("m_HeartRateModifierSympathetic", 6);
+  m_DataTrack.SetFormatting("m_HeartRateModifierVagal", 6);
+  m_DataTrack.SetFormatting("m_VagalSignal_Hz", 6);
+  m_DataTrack.SetFormatting("m_SympatheticSinoatrialSignal_Hz", 6);
+  m_DataTrack.SetFormatting("m_AfferentBaroreceptorCarotid_Hz", 6);
+  m_DataTrack.SetFormatting("m_AfferentBaroreceptorAortic_Hz", 6);
+  m_DataTrack.SetFormatting("m_AfferentChemoreceptor_Hz", 6);
+  m_DataTrack.SetFormatting("m_AfferentPulmonaryStretchReceptor_Hz", 6);
+  m_DataTrack.SetFormatting("m_AfferentCardiopulmonary_Hz", 6);
+  m_DataTrack.SetFormatting("m_CarotidBaroreceptorStrain", 6);
+  m_DataTrack.SetFormatting("m_AorticBaroreceptorStrain", 6);
+  m_DataTrack.SetFormatting("m_ChemoreceptorFiringRateSetPoint_Hz", 6);
+  m_DataTrack.SetFormatting("m_CardiopulmonaryInputBaseline_mmHg", 6);
+  m_DataTrack.SetFormatting("m_CardiopulmonaryInput_mmHg", 6);
+  m_DataTrack.SetFormatting("m_MeanLungVolume_L", 6);
+  m_DataTrack.SetFormatting("m_BaroreceptorOperatingPoint_mmHg", 6);
+
+  m_DataTrack.SetFormatting("m_HeartOxygenBaseline", 12);
+  m_DataTrack.SetFormatting("m_MuscleOxygenBaseline", 12);
+  m_DataTrack.SetFormatting("m_OxygenAutoregulatorHeart", 12);
+  m_DataTrack.SetFormatting("m_OxygenAutoregulatorMuscle", 12);
+  m_DataTrack.SetFormatting("m_HypoxiaThresholdHeart", 12);
+  m_DataTrack.SetFormatting("m_HypoxiaThresholdPeripheral", 12);
+  m_DataTrack.SetFormatting("m_HypercapniaThresholdHeart", 12);
+  m_DataTrack.SetFormatting("m_HypercapniaThresholdPeripheral", 12);
+  // m_DataTrack.SetFormatting("metabolicFraction", 12);
+  m_DataTrack.SetFormatting("m_SympatheticPeripheralSignal_Hz", 12);
+  m_DataTrack.SetFormatting("m_SympatheticPeripheralSignalBaseline_Hz", 12);
+  m_DataTrack.SetFormatting("m_SympatheticPeripheralSignalFatigue", 12);
+  m_DataTrack.SetFormatting("m_SympatheticSinoatrialSignalBaseline_Hz", 12);
+  m_DataTrack.SetFormatting("m_ResistanceModifierMuscle", 12);
+
+  m_DataTrack.SetFormatting("m_OverrideHR_Conformant_Per_min", 6);
+  m_DataTrack.SetFormatting("m_CardiacCyclePeriod_s", 6);
+  m_DataTrack.SetFormatting("m_StartSystole", 6);
+  m_DataTrack.SetFormatting("m_SystoleCount", 6);
+  m_DataTrack.SetFormatting("m_SystoleCountTime", 16);
+  m_DataTrack.SetFormatting("m_CurrentCardiacCycleTime_s", 6);
+  m_DataTrack.SetFormatting("m_CurrentCardiacCycleDuration_s", 6);
+  m_DataTrack.SetFormatting("m_HeartFlowDetected", 6);
+  m_DataTrack.SetFormatting("m_LHeartFlow_ml_Per_s", 6);
+  m_DataTrack.SetFormatting("m_Set_HR_Per_Min_prev", 6);
+  m_DataTrack.SetFormatting("m_Set_HR_Per_Min", 6);
+
+  m_DataTrack.SetFormatting("m_LeftHeartElastanceModifier", 6);
+  m_DataTrack.SetFormatting("m_LeftHeartElastanceMin_mmHg_Per_mL", 6);
+  m_DataTrack.SetFormatting("m_LeftHeartElastanceMax_mmHg_Per_mL", 6);
+  m_DataTrack.SetFormatting("m_LeftHeartElastance_mmHg_Per_mL", 6);
+  m_DataTrack.SetFormatting("m_RightHeartElastanceMin_mmHg_Per_mL", 6);
+  m_DataTrack.SetFormatting("m_RightHeartElastanceMax_mmHg_Per_mL", 6);
+  m_DataTrack.SetFormatting("m_RightHeartElastance_mmHg_Per_mL", 6);
+  m_DataTrack.SetFormatting("m_pAortaToMuscle_R", 12);
+  m_DataTrack.SetFormatting("m_pAortaToMuscle_next_R", 12);
+  m_DataTrack.SetFormatting("m_pAortaToMuscle_baseline_R", 12);
+  m_DataTrack.SetFormatting("m_pAortaToMuscle_flow", 12);
+  m_DataTrack.SetFormatting("m_minIndividualSystemicResistance__mmHg_s_Per_mL", 12);
+
+  m_DataTrack.SetFormatting("m_has_exercise", 12);
+  m_DataTrack.SetFormatting("m_exercise_energy_inc_kcal_Per_day", 12);
+  m_DataTrack.SetFormatting("m_exerciseIntensity", 12);
+
+  // BloodChem
+  m_DataTrack.SetFormatting("m_SID", 12);
+  m_DataTrack.SetFormatting("m_otherCations_mmol_Per_L", 12);
+  m_DataTrack.SetFormatting("vcNa", 12);
+  m_DataTrack.SetFormatting("vcK", 12);
+  m_DataTrack.SetFormatting("vcCl", 12);
+  m_DataTrack.SetFormatting("vcLac", 12);
+  m_DataTrack.SetFormatting("vcKetones", 12);
+
   // Create the file now that all probes and requests have been added to the track
   // So we get columns for all of our data
   if (!isOpen) {
@@ -267,6 +415,80 @@ void PhysiologyEngineTrack::PullData()
     else
       m_DataTrack.Probe(ds->Heading, SEScalar::dNaN());
   }
+  // SENervousSystem* n1 = (SENervousSystem*)m_PhysiologySystems[9];
+  // const double x_ComplianceScale = n1->GetComplianceScale().GetValue();
+  m_DataTrack.Probe("_XVER_", _XVER_);
+
+  Nervous* n2 = (Nervous*)m_PhysiologySystems[9];
+  m_DataTrack.Probe("m_HeartRateModifierSympathetic", n2->m_HeartRateModifierSympathetic);
+  m_DataTrack.Probe("m_HeartRateModifierVagal", n2->m_HeartRateModifierVagal);
+  m_DataTrack.Probe("m_VagalSignal_Hz", n2->m_VagalSignal_Hz);
+  m_DataTrack.Probe("m_SympatheticSinoatrialSignal_Hz", n2->m_SympatheticSinoatrialSignal_Hz);
+  m_DataTrack.Probe("m_AfferentBaroreceptorCarotid_Hz", n2-> m_AfferentBaroreceptorCarotid_Hz);
+  m_DataTrack.Probe("m_AfferentBaroreceptorAortic_Hz", n2->m_AfferentBaroreceptorAortic_Hz);
+  m_DataTrack.Probe("m_AfferentChemoreceptor_Hz", n2->m_AfferentChemoreceptor_Hz);
+  m_DataTrack.Probe("m_AfferentPulmonaryStretchReceptor_Hz", n2->m_AfferentPulmonaryStretchReceptor_Hz);
+  m_DataTrack.Probe("m_AfferentCardiopulmonary_Hz", n2->m_AfferentCardiopulmonary_Hz);
+  m_DataTrack.Probe("m_CarotidBaroreceptorStrain", n2->m_CarotidBaroreceptorStrain);
+  m_DataTrack.Probe("m_AorticBaroreceptorStrain", n2->m_AorticBaroreceptorStrain);
+  m_DataTrack.Probe("m_ChemoreceptorFiringRateSetPoint_Hz", n2->m_ChemoreceptorFiringRateSetPoint_Hz);
+  m_DataTrack.Probe("m_CardiopulmonaryInputBaseline_mmHg", n2->m_CardiopulmonaryInputBaseline_mmHg);
+  m_DataTrack.Probe("m_CardiopulmonaryInput_mmHg", n2->m_CardiopulmonaryInput_mmHg);
+  m_DataTrack.Probe("m_MeanLungVolume_L", n2->m_MeanLungVolume_L);
+  m_DataTrack.Probe("m_BaroreceptorOperatingPoint_mmHg", n2->m_BaroreceptorOperatingPoint_mmHg);
+  m_DataTrack.Probe("m_HeartOxygenBaseline", n2->m_HeartOxygenBaseline);
+  m_DataTrack.Probe("m_MuscleOxygenBaseline", n2->m_MuscleOxygenBaseline);
+  m_DataTrack.Probe("m_OxygenAutoregulatorHeart", n2->m_OxygenAutoregulatorHeart);
+  m_DataTrack.Probe("m_OxygenAutoregulatorMuscle", n2->m_OxygenAutoregulatorMuscle);
+  m_DataTrack.Probe("m_HypoxiaThresholdHeart", n2->m_HypoxiaThresholdHeart);
+  m_DataTrack.Probe("m_HypoxiaThresholdPeripheral", n2->m_HypoxiaThresholdPeripheral);
+  m_DataTrack.Probe("m_HypercapniaThresholdHeart", n2->m_HypercapniaThresholdHeart);
+  m_DataTrack.Probe("m_HypercapniaThresholdPeripheral", n2->m_HypercapniaThresholdPeripheral);
+  // m_DataTrack.Probe("metabolicFraction", n2->m_data.GetEnergy().GetTotalMetabolicRate(PowerUnit::W) / n2->m_data.GetPatient().GetBasalMetabolicRate(PowerUnit::W));
+  m_DataTrack.Probe("m_SympatheticPeripheralSignal_Hz",         n2->m_SympatheticPeripheralSignal_Hz);
+  m_DataTrack.Probe("m_SympatheticPeripheralSignalBaseline_Hz", n2->m_SympatheticPeripheralSignalBaseline_Hz);
+  m_DataTrack.Probe("m_SympatheticPeripheralSignalFatigue",     n2->m_SympatheticPeripheralSignalFatigue);
+  m_DataTrack.Probe("m_SympatheticSinoatrialSignalBaseline_Hz", n2->m_SympatheticSinoatrialSignalBaseline_Hz);
+  m_DataTrack.Probe("m_ResistanceModifierMuscle",               n2->m_ResistanceModifierMuscle);
+
+  Cardiovascular* c2 = (Cardiovascular*)m_PhysiologySystems[1];
+  m_DataTrack.Probe("m_OverrideHR_Conformant_Per_min", c2->m_OverrideHR_Conformant_Per_min);
+  m_DataTrack.Probe("m_CardiacCyclePeriod_s", c2->m_CardiacCyclePeriod_s);
+  m_DataTrack.Probe("m_StartSystole", c2->m_StartSystole ? 1.0 : 0.0);
+  m_DataTrack.Probe("m_SystoleCount", c2->m_SystoleCount);
+  m_DataTrack.Probe("m_SystoleCountTime", c2->m_SystoleCountTime);
+  m_DataTrack.Probe("m_CurrentCardiacCycleTime_s", c2->m_CurrentCardiacCycleTime_s);
+  m_DataTrack.Probe("m_CurrentCardiacCycleDuration_s", c2->m_CurrentCardiacCycleDuration_s);
+  m_DataTrack.Probe("m_HeartFlowDetected", c2->m_HeartFlowDetected ? 1.0 : 0.0);
+  m_DataTrack.Probe("m_LHeartFlow_ml_Per_s", c2->m_LeftHeartToAorta->GetNextFlow(VolumePerTimeUnit::mL_Per_s));
+  m_DataTrack.Probe("m_Set_HR_Per_Min_prev", c2->m_Set_HR_Per_Min_prev);
+  m_DataTrack.Probe("m_Set_HR_Per_Min", c2->m_Set_HR_Per_Min);
+  m_DataTrack.Probe("m_LeftHeartElastanceModifier", c2->m_LeftHeartElastanceModifier);
+  m_DataTrack.Probe("m_LeftHeartElastanceMin_mmHg_Per_mL", c2->m_LeftHeartElastanceMin_mmHg_Per_mL);
+  m_DataTrack.Probe("m_LeftHeartElastanceMax_mmHg_Per_mL", c2->m_LeftHeartElastanceMax_mmHg_Per_mL);
+  m_DataTrack.Probe("m_LeftHeartElastance_mmHg_Per_mL", c2->m_LeftHeartElastance_mmHg_Per_mL);
+  m_DataTrack.Probe("m_RightHeartElastanceMin_mmHg_Per_mL", c2->m_RightHeartElastanceMin_mmHg_Per_mL);
+  m_DataTrack.Probe("m_RightHeartElastanceMax_mmHg_Per_mL", c2->m_RightHeartElastanceMax_mmHg_Per_mL);
+  m_DataTrack.Probe("m_RightHeartElastance_mmHg_Per_mL", c2->m_RightHeartElastance_mmHg_Per_mL);
+  m_DataTrack.Probe("m_pAortaToMuscle_R", c2->m_pAortaToMuscle->GetResistance(FlowResistanceUnit::mmHg_s_Per_mL));
+  m_DataTrack.Probe("m_pAortaToMuscle_next_R", c2->m_pAortaToMuscle->GetNextResistance(FlowResistanceUnit::mmHg_s_Per_mL));
+  m_DataTrack.Probe("m_pAortaToMuscle_baseline_R", c2->m_pAortaToMuscle->GetResistanceBaseline(FlowResistanceUnit::mmHg_s_Per_mL));
+  m_DataTrack.Probe("m_pAortaToMuscle_flow", c2->m_pAortaToMuscle->GetNextFlow(VolumePerTimeUnit::mL_Per_s));
+  m_DataTrack.Probe("m_minIndividualSystemicResistance__mmHg_s_Per_mL", c2->m_minIndividialSystemicResistance__mmHg_s_Per_mL);
+
+  Energy* e2 = (Energy*)m_PhysiologySystems[3];
+  m_DataTrack.Probe("m_has_exercise", e2->m_has_exercise);
+  m_DataTrack.Probe("m_exercise_energy_inc_kcal_Per_day", e2->m_exercise_energy_inc_kcal_Per_day);
+  m_DataTrack.Probe("m_exerciseIntensity", e2->m_exerciseIntensity);
+
+  BloodChemistry* bc2 = (BloodChemistry*)m_PhysiologySystems[0];
+  m_DataTrack.Probe("m_SID", bc2->m_SID);
+  m_DataTrack.Probe("m_otherCations_mmol_Per_L", bc2->m_otherCations_mmol_Per_L);
+  m_DataTrack.Probe("vcNa", bc2->m_venaCavaSodium->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
+  m_DataTrack.Probe("vcK", bc2->m_venaCavaPotassium->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
+  m_DataTrack.Probe("vcCl", bc2->m_venaCavaChloride->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
+  m_DataTrack.Probe("vcLac", bc2->m_venaCavaLactate->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
+  m_DataTrack.Probe("vcKetones", bc2->m_venaCavaKetones->GetMolarity(AmountPerVolumeUnit::mmol_Per_L));
 }
 
 bool PhysiologyEngineTrack::TrackRequest(SEDataRequest& dr)

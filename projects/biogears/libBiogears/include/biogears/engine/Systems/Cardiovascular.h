@@ -46,6 +46,7 @@ class BioGears;
 class BIOGEARS_API Cardiovascular : public SECardiovascularSystem, public BioGearsSystem {
   friend class BioGears;
   friend class BioGearsEngineTest;
+  friend class PhysiologyEngineTrack;
 
 protected:
   static auto make_unique(BioGears& bg) -> std::unique_ptr<Cardiovascular>;
@@ -172,6 +173,11 @@ private:
   double m_OverrideRHEMax_Conformant_mmHg;
   double m_overrideTime_s;
   bool m_OverrideOnOffCheck = false;
+
+  double m_Set_HR_Per_Min_prev;
+  double m_Set_HR_Per_Min;
+  double m_SystoleCount;
+  double m_SystoleCountTime;
 
   SEFluidCircuitCalculator m_circuitCalculator;
   SELiquidTransporter m_transporter;

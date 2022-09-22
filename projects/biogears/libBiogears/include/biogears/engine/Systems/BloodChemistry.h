@@ -39,6 +39,7 @@ class BioGears;
 class BIOGEARS_API BloodChemistry : public SEBloodChemistrySystem, public BioGearsSystem {
   friend BioGears;
   friend class BioGearsEngineTest;
+  friend class PhysiologyEngineTrack;
 
 protected:
   static auto make_unique(BioGears& bg) -> std::unique_ptr<BloodChemistry>;
@@ -144,5 +145,9 @@ protected:
   double m_d3Agglutinate_ct;
   double m_4Agglutinate_ct;
   double m_RemovedRBC_ct;
+
+  // JPB
+  double m_otherCations_mmol_Per_L;
+  double m_SID;
 };
 }

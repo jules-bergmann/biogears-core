@@ -30,6 +30,7 @@
 #include <biogears/schema/cdm/Patient.hxx>
 #include <biogears/string/manipulation.h>
 #include <biogears/version.h>
+#include <biogears/xver.h>
 
 using namespace biogears;
 
@@ -218,6 +219,7 @@ std::string make_usage_string_(const std::string& program_name, const boost::pro
 
 int main(int argc, char* argv[])
 {
+  std::cout << "xver " << _XVER_ << std::endl;
 
   signal(SIGINT, signal_callback_handler);
   signal(SIGABRT, signal_callback_handler);
@@ -264,6 +266,7 @@ int main(int argc, char* argv[])
     }
 
     if (vm["version"].as<bool>()) {
+      std::cout << "[1] defined(BIOGEARS_SUBPROCESS_SUPPORT) = TRUE" << std::endl;
       std::cout << branded_version_string_str() << std::endl;
       return static_cast<int>(ExecutionErrors::NONE);
     }
@@ -411,6 +414,7 @@ int main(int argc, char* argv[])
       return static_cast<int>(ExecutionErrors::NONE);
     }
     if (args.Option("VERSION") || args.Option("V")) {
+      std::cout << "[1] defined(BIOGEARS_SUBPROCESS_SUPPORT) = FALSE" << std::endl;
       std::cout << "Using libbiogears-" << biogears::full_version_string() << std::endl;
       return static_cast<int>(ExecutionErrors::NONE);
     }
