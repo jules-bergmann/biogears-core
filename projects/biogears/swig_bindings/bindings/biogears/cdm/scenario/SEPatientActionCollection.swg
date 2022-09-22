@@ -28,6 +28,7 @@
 %import <biogears/cdm/patient/actions/SEChestOcclusiveDressing.swg>
 %import <biogears/cdm/patient/actions/SEConsciousRespiration.swg>
 %import <biogears/cdm/patient/actions/SEConsumeNutrients.swg>
+%import <biogears/cdm/patient/actions/SEEbola.swg>
 %import <biogears/cdm/patient/actions/SEEscharotomy.swg>
 %import <biogears/cdm/patient/actions/SEExercise.swg>
 %import <biogears/cdm/patient/actions/SEHemorrhage.swg>
@@ -40,6 +41,7 @@
 %import <biogears/cdm/patient/actions/SEPatientAssessmentRequest.swg>
 %import <biogears/cdm/patient/actions/SEPericardialEffusion.swg>
 %import <biogears/cdm/patient/actions/SEPulmonaryShunt.swg>
+%import <biogears/cdm/patient/actions/SERadiationAbsorbedDose.h>
 %import <biogears/cdm/patient/actions/SESleep.swg>
 %import <biogears/cdm/patient/actions/SESubstanceBolus.swg>
 %import <biogears/cdm/patient/actions/SESubstanceCompoundInfusion.swg>

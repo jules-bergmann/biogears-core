@@ -445,21 +445,24 @@ void Drugs::AdministerSubstanceNasal()
     }
 
     double newNasalDose_mg = nDose->GetDose().GetValue(MassUnit::mg);
-
+    double transconst = 1.0;
+    double carrier = 1.8*(0.0000000001); //1.0;
+    double absconst = 13.2;
+    double degredation = 20.0;
     //Rate constants in 1/s
-    const double nasalk1 = 0.00001736111; //translocation rate constant of unreleased substance from the anterior to the posterior section
-    const double nasalk2 = 1000000; // rate constant of release from drug carrier in anterior section
-    const double nasalk3 = 0.00001736111; // translocation rate constant of released substance from the anterior to the posterior section
-    const double nasalk4 = 0.000173; // absorption rate constant in anterior section
-    const double nasalk5 = 0.0011575; // translocation rate constant of unreleased substance from the posterior to the gastrointestinal section
-    const double nasalk6 = 1000000; // rate constant of release from drug carrier in posterior section
-    const double nasalk7 = 0.0011575; // translocation rate constant of released substance from the posterior to the gastrointestinal section
-    const double nasalk8 = 0.0000260; // absorption rate constant in posterior section
-    const double nasalk9 = 1000000; // rate constant of release from drug carrier in gastrointestinal section
-    const double nasalk10 = 0.000000027; // absorption rate constant in gastrointestinal section
-    const double nasalk11 = 0.00001; // rate constant of released drug degradation in anterior section
-    const double nasalk12 = 0.00001; // rate constant of released drug degradation in posterior section
-    const double nasalk13 = 0.00001; // rate constant of released drug degradation in gastrointestinal section
+    const double nasalk1 = transconst*(0.00000001736111); //translocation rate constant of unreleased substance from the anterior to the posterior section
+    const double nasalk2 = carrier*(1000000); // rate constant of release from drug carrier in anterior section
+    const double nasalk3 = transconst*(0.00000001736111); // translocation rate constant of released substance from the anterior to the posterior section
+    const double nasalk4 = absconst*(0.000173); // absorption rate constant in anterior section
+    const double nasalk5 = 0.000000011575; // translocation rate constant of unreleased substance from the posterior to the gastrointestinal section
+    const double nasalk6 = carrier*(1000000); // rate constant of release from drug carrier in posterior section
+    const double nasalk7 = transconst*(0.00000011575); // translocation rate constant of released substance from the posterior to the gastrointestinal section
+    const double nasalk8 = absconst*(0.0000260); // absorption rate constant in posterior section
+    const double nasalk9 = carrier*(1000000); // rate constant of release from drug carrier in gastrointestinal section
+    const double nasalk10 = absconst*(0.0000000027); // absorption rate constant in gastrointestinal section
+    const double nasalk11 = degredation*(0.0001); // rate constant of released drug degradation in anterior section
+    const double nasalk12 = degredation*(0.0001); // rate constant of released drug degradation in posterior section
+    const double nasalk13 = degredation*(0.00001); // rate constant of released drug degradation in gastrointestinal section
     const double nasalk14 = 0.000027777; // transit rate constant of unreleased drug through gastrointestinal section
     const double nasalk15 = 0.000027777; // transit rate constant of released drug through gastrointestinal section
 
@@ -468,8 +471,10 @@ void Drugs::AdministerSubstanceNasal()
     std::vector<double> relMass = nState->GetReleasedNasalMasses(MassUnit::mg);
 
     if (0.0 != nDose->GetDose().GetValue(MassUnit::mg)) {
-      relMass[0] += (0.6 * newNasalDose_mg); // initial amount of released drug in anterior section
-      relMass[1] += (0.4 * newNasalDose_mg); // initial amount of released drug in posterior section
+      relMass[0] += (0.0 * newNasalDose_mg); // initial amount of released drug in anterior section
+      relMass[1] += (0.0 * newNasalDose_mg); // initial amount of released drug in posterior section
+      unrelMass[0] += (0.6 * newNasalDose_mg); // initial amount of unreleased drug in anterior section
+      unrelMass[1] += (0.4 * newNasalDose_mg); // initial amount of unreleased drug in posterior section
     }
     double nasalAnteriorUnreleasedInitial_mg = unrelMass[0]; // initial amount of unreleased drug in anterior section
     double nasalAnteriorReleasedInitial_mg = relMass[0];
@@ -1023,32 +1028,45 @@ void Drugs::CalculateDrugEffects()
   GetTubularPermeabilityChange().SetValue(effects_unitless["TubularPermeability"]);
   GetAntibioticActivity().SetValue(antibioticEffect_Per_hr);
 
-  //Assume drugs affecing pupil behavior do so equally on left/right sides
-  const SEPupillaryResponse& leftPupillaryResponse = m_data.GetNervous().GetLeftEyePupillaryResponse();
-  const SEPupillaryResponse& rightPupillaryResponse = m_data.GetNervous().GetRightEyePupillaryResponse();
-  double leftPupilReactivityResponseLevel = leftPupillaryResponse.GetReactivityModifier() * effects_unitless["PupilReactivity"];
-  double rightPupilReactivityResponseLevel = rightPupillaryResponse.GetReactivityModifier() * effects_unitless["PupilReactivity"];
-  double leftPupilSizeResponseLevel = leftPupillaryResponse.GetSizeModifier() * effects_unitless["PupilSize"];
-  double rightPupilSizeResponseLevel = rightPupillaryResponse.GetSizeModifier() * effects_unitless["PupilSize"];
+  //!
+  //! TODO:  minor patch to fix sarin pupil effects, logic is a bit wrong 
+  //! 
+  //! The next section of code is being saved 2022-01-19 To review reintroduction of the Sarin Gas Curve.  
+  //! Cumulitive applications of PupilSizeResponseLevel tended to Zero in most senarios making the 
+  //! PupilaryResponse less then useful. 
+  
+  //Assume drugs affecing pupil behavior do so equally on left/right sides (this might need to be deleted, logic is all wrong)
+  //const SEPupillaryResponse& leftPupillaryResponse = m_data.GetNervous().GetLeftEyePupillaryResponse();
+  //const SEPupillaryResponse& rightPupillaryResponse = m_data.GetNervous().GetRightEyePupillaryResponse();
+  //double leftPupilReactivityResponseLevel = leftPupillaryResponse.GetReactivityModifier() * effects_unitless["PupilReactivity"];
+  //double rightPupilReactivityResponseLevel = rightPupillaryResponse.GetReactivityModifier() * effects_unitless["PupilReactivity"];
+  //double leftPupilSizeResponseLevel = leftPupillaryResponse.GetSizeModifier() * effects_unitless["PupilSize"];
+  //double rightPupilSizeResponseLevel = rightPupillaryResponse.GetSizeModifier() * effects_unitless["PupilSize"];
 
   //We need to handle Sarin pupil effects (if Sarin is active) separately because technically they stem from contact and not systemic levels, meaning that they
   //do not depend on the Sarin plasma concentration in the same way as other PD effects.  We still perform the calculation here because
   //we cannot "contact" the eye, but scale them differently.  Sarin pupil effects are large and fast, so it's reasonable to
   //overwrite other drug pupil effects (and we probably aren't modeling opioid addicts inhaling Sarin)
-  if (m_data.GetSubstances().IsActive(*m_data.GetSubstances().GetSubstance("Sarin"))) {
-    leftPupilSizeResponseLevel = GeneralMath::LogisticFunction(-1, 0.0475, 250, m_data.GetSubstances().GetSubstance("Sarin")->GetPlasmaConcentration(MassPerVolumeUnit::ug_Per_L));
-    rightPupilSizeResponseLevel = leftPupilSizeResponseLevel;
-  }
-  //Bound pupil modifiers
-  BLIM(leftPupilReactivityResponseLevel, -1, 1);
-  BLIM(rightPupilReactivityResponseLevel, -1, 1);
-  BLIM(leftPupilSizeResponseLevel, -1, 1);
-  BLIM(rightPupilSizeResponseLevel, -1, 1);
+  // 
+  //if (m_data.GetSubstances().IsActive(*m_data.GetSubstances().GetSubstance("Sarin"))) {
+  //  leftPupilSizeResponseLevel = GeneralMath::LogisticFunction(-1, 0.0475, 250, m_data.GetSubstances().GetSubstance("Sarin")->GetPlasmaConcentration(MassPerVolumeUnit::ug_Per_L));
+  //  rightPupilSizeResponseLevel = leftPupilSizeResponseLevel;
+  //}
+  ////Bound pupil modifiers
+  //BLIM(leftPupilReactivityResponseLevel, -1, 1);
+  //BLIM(rightPupilReactivityResponseLevel, -1, 1);
+  //BLIM(leftPupilSizeResponseLevel, -1, 1);
+  //BLIM(rightPupilSizeResponseLevel, -1, 1);
 
-  m_data.GetNervous().GetLeftEyePupillaryResponse().GetReactivityModifier().SetValue(leftPupilReactivityResponseLevel);
-  m_data.GetNervous().GetLeftEyePupillaryResponse().GetSizeModifier().SetValue(leftPupilSizeResponseLevel);
-  m_data.GetNervous().GetRightEyePupillaryResponse().GetReactivityModifier().SetValue(rightPupilReactivityResponseLevel);
-  m_data.GetNervous().GetRightEyePupillaryResponse().GetSizeModifier().SetValue(rightPupilSizeResponseLevel);
+  m_data.GetNervous().GetLeftEyePupillaryResponse().GetReactivityModifier().SetValue(effects_unitless["PupilReactivity"]);
+  m_data.GetNervous().GetRightEyePupillaryResponse().GetReactivityModifier().SetValue(effects_unitless["PupilReactivity"]);
+  m_data.GetNervous().GetLeftEyePupillaryResponse().GetSizeModifier().SetValue(effects_unitless["PupilSize"]);
+  m_data.GetNervous().GetRightEyePupillaryResponse().GetSizeModifier().SetValue(effects_unitless["PupilSize"]);
+
+  //m_data.GetNervous().GetLeftEyePupillaryResponse().GetReactivityModifier().SetValue(leftPupilReactivityResponseLevel);
+  //m_data.GetNervous().GetLeftEyePupillaryResponse().GetSizeModifier().SetValue(leftPupilSizeResponseLevel);
+  //m_data.GetNervous().GetRightEyePupillaryResponse().GetReactivityModifier().SetValue(rightPupilReactivityResponseLevel);
+  //m_data.GetNervous().GetRightEyePupillaryResponse().GetSizeModifier().SetValue(rightPupilSizeResponseLevel);
 
   //Account for cardiovascular override actions
   if (m_data.GetActions().GetPatientActions().HasOverride()

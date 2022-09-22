@@ -22,6 +22,7 @@ specific language governing permissions and limitations under the License.
 
 #include <cstddef>
 #include <biogears/exports.h>
+#include <cstddef>
 namespace biogears{
 class CUnitDimension;
 class CQuantityConversionKey;

@@ -278,6 +278,7 @@ SEPatientActionCollection::SEPatientActionCollection(SESubstanceManager& substan
   m_LeftChestOcclusiveDressing = nullptr;
   m_RightChestOcclusiveDressing = nullptr;
   m_Exercise = nullptr;
+  m_Ebola = nullptr;
   m_Infection = nullptr;
   m_Intubation = nullptr;
   m_MechanicalVentilation = nullptr;
@@ -285,6 +286,7 @@ SEPatientActionCollection::SEPatientActionCollection(SESubstanceManager& substan
   m_RightNeedleDecompression = nullptr;
   m_PericardialEffusion = nullptr;
   m_PulmonaryShunt = nullptr;
+  m_RadiationAbsorbedDose = nullptr;
   m_Sleep = nullptr;
   m_LeftOpenTensionPneumothorax = nullptr;
   m_LeftClosedTensionPneumothorax = nullptr;
@@ -316,6 +318,7 @@ void SEPatientActionCollection::Clear()
   RemoveLeftChestOcclusiveDressing();
   RemoveRightChestOcclusiveDressing();
   RemoveExercise();
+  RemoveEbola();
   RemoveInfection();
   RemoveIntubation();
   RemoveMechanicalVentilation();
@@ -323,6 +326,7 @@ void SEPatientActionCollection::Clear()
   RemoveRightNeedleDecompression();
   RemovePericardialEffusion();
   RemovePulmonaryShunt();
+  RemoveRadiationAbsorbedDose();
   RemoveSleepState();
   RemoveLeftOpenTensionPneumothorax();
   RemoveLeftClosedTensionPneumothorax();
@@ -393,6 +397,9 @@ void SEPatientActionCollection::Unload(std::vector<CDM::ActionData*>& to)
       to.push_back(itr.second->Unload());
     }
   }
+  if (HasEbola()) {
+    to.push_back(GetEbola()->Unload());
+  }
   if (HasExercise()) {
     to.push_back(GetExercise()->Unload());
   }
@@ -426,6 +433,9 @@ void SEPatientActionCollection::Unload(std::vector<CDM::ActionData*>& to)
   }
   if (HasPulmonaryShunt()) {
     to.push_back(GetPulmonaryShunt()->Unload());
+  }
+  if (HasRadiationAbsorbedDose()) {
+    to.push_back(GetRadiationAbsorbedDose()->Unload());
   }
   if (HasSleepState()) {
     to.push_back(GetSleepState()->Unload());
@@ -732,6 +742,19 @@ bool SEPatientActionCollection::ProcessAction(const CDM::PatientActionData& acti
     return IsValid(*escharotomy2);
   }
 
+  const CDM::EbolaData* ebola = dynamic_cast<const CDM::EbolaData*>(&action);
+  if (ebola != nullptr) {
+    if (m_Ebola == nullptr) {
+      m_Ebola = new SEEbola();
+    }
+    m_Ebola->Load(*ebola);
+    if (!m_Ebola->IsActive()) {
+      RemoveEbola();
+      return true;
+    }
+    return IsValid(*m_Ebola);
+  }
+
   const CDM::ExerciseData* exercise = dynamic_cast<const CDM::ExerciseData*>(&action);
   if (exercise != nullptr) {
     if (m_Exercise == nullptr) {
@@ -868,6 +891,18 @@ bool SEPatientActionCollection::ProcessAction(const CDM::PatientActionData& acti
       return true;
     }
     return IsValid(*m_PulmonaryShunt);
+  }
+
+  const CDM::RadiationAbsorbedDoseData* radabs = dynamic_cast<const CDM::RadiationAbsorbedDoseData*>(&action);
+  if (radabs != nullptr) {
+    if (m_RadiationAbsorbedDose == nullptr)
+      m_RadiationAbsorbedDose = new SERadiationAbsorbedDose();
+    m_RadiationAbsorbedDose->Load(*radabs);
+    if (!m_RadiationAbsorbedDose->IsActive()) {
+      RemoveRadiationAbsorbedDose();
+      return true;
+    }
+    return IsValid(*m_RadiationAbsorbedDose);
   }
 
   const CDM::SleepData* sleep = dynamic_cast<const CDM::SleepData*>(&action);
@@ -1273,6 +1308,21 @@ void SEPatientActionCollection::RemoveEscharotomy(const std::string& cmpt)
   SAFE_DELETE(h);
 }
 //-------------------------------------------------------------------------------
+bool SEPatientActionCollection::HasEbola() const
+{
+  return m_Ebola == nullptr ? false : true;
+}
+//-------------------------------------------------------------------------------
+SEEbola* SEPatientActionCollection::GetEbola() const
+{
+  return m_Ebola;
+}
+//-------------------------------------------------------------------------------
+void SEPatientActionCollection::RemoveEbola()
+{
+  SAFE_DELETE(m_Ebola);
+}
+//-------------------------------------------------------------------------------
 bool SEPatientActionCollection::HasExercise() const
 {
   return m_Exercise == nullptr ? false : true;
@@ -1483,6 +1533,21 @@ SEPulmonaryShunt* SEPatientActionCollection::GetPulmonaryShunt() const
 void SEPatientActionCollection::RemovePulmonaryShunt()
 {
   SAFE_DELETE(m_PulmonaryShunt);
+}
+//-------------------------------------------------------------------------------
+bool SEPatientActionCollection::HasRadiationAbsorbedDose() const
+{
+  return m_RadiationAbsorbedDose == nullptr ? false : true;
+}
+//-------------------------------------------------------------------------------
+SERadiationAbsorbedDose* SEPatientActionCollection::GetRadiationAbsorbedDose() const
+{
+  return m_RadiationAbsorbedDose;
+}
+//-------------------------------------------------------------------------------
+void SEPatientActionCollection::RemoveRadiationAbsorbedDose()
+{
+  SAFE_DELETE(m_RadiationAbsorbedDose);
 }
 //-------------------------------------------------------------------------------
 bool SEPatientActionCollection::HasSleepState() const

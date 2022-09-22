@@ -172,7 +172,24 @@ public:
   SEScalarMass& GetHemoglobinLostToUrine();
   double GetHemoglobinLostToUrine(const MassUnit& unit) const;
   //@}
-
+  /** @name LymphocyteCellCount
+  *  @brief @copybrief Physiology_BloodChemistrySystemData_LymphocyteCellCount
+  *  @{*/
+  /// %Test if member has been allocated
+  bool HasLymphocyteCellCount() const;
+  /// Get member class, allocate if nullptr
+  SEScalarAmountPerVolume& GetLymphocyteCellCount();
+  double GetLymphocyteCellCount(const AmountPerVolumeUnit& unit) const;
+  //@}
+  /** @name NeutrophilCellCount
+  *  @brief @copybrief Physiology_BloodChemistrySystemData_NeutrophilCellCount
+  *  @{*/
+  /// %Test if member has been allocated
+  bool HasNeutrophilCellCount() const;
+  /// Get member class, allocate if nullptr
+  SEScalarAmountPerVolume& GetNeutrophilCellCount();
+  double GetNeutrophilCellCount(const AmountPerVolumeUnit& unit) const;
+  //@}
   /** @name OxygenSaturation
    *  @brief @copybrief Physiology_BloodChemistrySystemData_OxygenSaturation
    *  @{*/
@@ -285,6 +302,16 @@ public:
   /// %Test if rh mismatch
   virtual SEScalarVolume& GetRhTransfusionReactionVolume();
   double GetRhTransfusionReactionVolume(const VolumeUnit& unit) const;
+  //@}
+
+  /** @name ViralLoad
+  *  @brief @copybrief Physiology_BloodChemistrySystemData_ViralLoad
+  *  @{*/
+  /// %Test if member has been allocated
+  bool HasViralLoad() const;
+  /// Get member class, allocate if nullptr
+  SEScalarAmountPerVolume& GetViralLoad();
+  double GetViralLoad() const;
   //@}
 
   /** @name VolumeFractionNeutralPhospholipidInPlasma
@@ -412,6 +439,8 @@ protected:
   SEScalarFraction* m_Hematocrit;
   SEScalarMass* m_HemoglobinContent;
   SEScalarMass* m_HemoglobinLostToUrine;
+  SEScalarAmountPerVolume* m_LymphocyteCellCount;
+  SEScalarAmountPerVolume* m_NeutrophilCellCount;
   SEScalarFraction* m_OxygenSaturation;
   SEScalarFraction* m_OxygenVenousSaturation;
   SEScalarAmountPerVolume* m_Phosphate;
@@ -424,6 +453,7 @@ protected:
   SEScalarMassPerVolume* m_TotalBilirubin;
   SEScalarMassPerVolume* m_TotalProteinConcentration;
   SEScalarVolume* m_RhTransfusionReactionVolume;
+  SEScalarAmountPerVolume* m_ViralLoad;
   SEScalarFraction* m_VolumeFractionNeutralPhospholipidInPlasma;
   SEScalarFraction* m_VolumeFractionNeutralLipidInPlasma;
   SEScalarAmountPerVolume* m_WhiteBloodCellCount;

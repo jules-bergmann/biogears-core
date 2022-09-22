@@ -25,6 +25,8 @@ specific language governing permissions and limitations under the License.
 #include <biogears/io/directories/override.h>
 #include <biogears/io/directories/patients.h>
 #include <biogears/io/directories/substances.h>
+#include <biogears/io/directories/scenarios.h>
+#include <biogears/io/directories/templates.h>
 #include <biogears/io/directories/xsd.h>
 #ifdef BIOGEARS_IO_EMBED_STATES
 #include <biogears/io/directories/states.h>
@@ -471,7 +473,7 @@ filesystem::path IOManager::FindTemplateFile(const char* file) const
     if (possible_path.compare(0, m_dirs.templates.size(), m_dirs.templates) == 0) {
       possible_path = possible_path.substr(m_dirs.templates.size());
     }
-    filesystem::path implied_path = m_dirs.scenarios;
+    filesystem::path implied_path = m_dirs.templates;
     implied_path /= file;
     possible_path = find_resource_file(implied_path.c_str());
   }
@@ -486,7 +488,7 @@ filesystem::path IOManager::FindSchemaFile(const char* file) const
     if (possible_path.compare(0, m_dirs.schema.size(), m_dirs.schema) == 0) {
       possible_path = possible_path.substr(m_dirs.schema.size());
     }
-    filesystem::path implied_path = m_dirs.scenarios;
+    filesystem::path implied_path = m_dirs.schema;
     implied_path /= file;
     possible_path = find_resource_file(implied_path.c_str());
   }
@@ -847,14 +849,20 @@ char const* IOManager::get_embedded_resource_file(const char* file, std::size_t&
   if (size > 0) {
     return result;
   }
-  //result = io::get_embedded_scenarios_file(file, size);
-  //if (size > 0) {
-  //  return result;
-  //}
-  //result = io::get_embedded_templates_file(file, size);
-  //if (size > 0) {
-  //  return result;
-  //}
+
+#ifdef BIOGEARS_IO_EMBED_SCENARIOS
+  result = io::get_embedded_scenarios_file(file, size);
+  if (size > 0) {
+    return result;
+  }
+#endif
+#ifdef BIOGEARS_IO_EMBED_TEMPLATES
+  result = io::get_embedded_templates_file(file, size);
+  if (size > 0) {
+    return result;
+  }
+#endif
+
   return nullptr;
 }
 //---------------------------------------------------------------------------
@@ -984,7 +992,7 @@ size_t IOManager::read_resource_file(char const*
   size_t content_size = 0;
   biogears::filesystem::path test_location { find_resource_file(file) };
   if (test_location.exists() && test_location.is_file()) {
-    std::ifstream resource_file { test_location, std::ios::in };
+    std::ifstream resource_file { test_location, std::ios::in  | std::ios::binary};
     if (resource_file.is_open()) {
       resource_file.seekg(0, resource_file.end);
       content_size = resource_file.tellg();

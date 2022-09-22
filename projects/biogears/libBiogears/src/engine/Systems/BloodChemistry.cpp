@@ -16,8 +16,10 @@ specific language governing permissions and limitations under the License.
 #include <biogears/cdm/patient/assessments/SEArterialBloodGasAnalysis.h>
 #include <biogears/cdm/patient/assessments/SECompleteBloodCount.h>
 #include <biogears/cdm/patient/assessments/SEComprehensiveMetabolicPanel.h>
+#include <biogears/cdm/patient/assessments/SEProthrombinTime.h>
 #include <biogears/cdm/properties/SEScalarAmountPerTime.h>
 #include <biogears/cdm/properties/SEScalarAmountPerVolume.h>
+#include <biogears/cdm/properties/SEScalarEnergyPerMass.h>
 #include <biogears/cdm/properties/SEScalarFraction.h>
 #include <biogears/cdm/properties/SEScalarFrequency.h>
 #include <biogears/cdm/properties/SEScalarHeatCapacitancePerMass.h>
@@ -28,8 +30,11 @@ specific language governing permissions and limitations under the License.
 #include <biogears/cdm/properties/SEScalarPressure.h>
 #include <biogears/cdm/properties/SEScalarVolume.h>
 #include <biogears/cdm/properties/SEScalarVolumePerTime.h>
+#include <biogears/cdm/substance/SESubstance.h>
 #include <biogears/cdm/system/physiology/SECardiovascularSystem.h>
 #include <biogears/cdm/system/physiology/SEDrugSystem.h>
+#include <biogears/cdm/system/physiology/SEEnergySystem.h>
+#include <biogears/cdm/properties/SEScalarPower.h>
 #include <biogears/engine/BioGearsPhysiologyEngine.h>
 #include <biogears/engine/Controller/BioGears.h>
 #include <biogears/xver.h>
@@ -65,6 +70,7 @@ void BloodChemistry::Clear()
   m_aortaBicarbonate = nullptr;
   m_brainO2 = nullptr;
   m_myocardiumO2 = nullptr;
+  m_Ondansetron = nullptr;
   m_pulmonaryArteriesO2 = nullptr;
   m_pulmonaryArteriesCO2 = nullptr;
   m_pulmonaryVeinsO2 = nullptr;
@@ -99,6 +105,22 @@ void BloodChemistry::Clear()
   m_RemovedRBC_ct = 0.0;
 
   m_otherCations_mmol_Per_L = +3.2;
+
+    //radiation model parameters, first sets are growing within the marrow and thymus
+  m_progenitorLymphocytes_ct = 0.0;
+  m_progenitorLymphocytes_wd_ct = 0.0;
+  m_progenitorLymphocytes_d_ct = 0.0;
+  m_progenitorLymphocytes_hd_ct = 0.0;
+
+  m_maturingLymphocytes_ct = 0.0;
+  m_maturingLymphocytes_d_ct = 0.0;
+  m_maturingLymphocytes_hd_ct = 0.0;
+
+  //circulating counts
+  m_Lymphocytes_ct = 0.0;
+  m_Lymphocytes_d_ct = 0.0;
+  m_Lymphocytes_hd_ct = 0.0;
+
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -115,11 +137,14 @@ void BloodChemistry::Initialize()
   GetPhosphate().SetValue(1.1, AmountPerVolumeUnit::mmol_Per_L);
   GetStrongIonDifference().SetValue(40.5, AmountPerVolumeUnit::mmol_Per_L);
   GetTotalBilirubin().SetValue(0.70, MassPerVolumeUnit::mg_Per_dL); //Reference range is 0.2-1.0
+  GetLymphocyteCellCount().SetValue(1.9e9, AmountPerVolumeUnit::ct_Per_L); //Reference range is 1.3-3.5e9 per liter
+  GetNeutrophilCellCount().SetValue(3.0e9, AmountPerVolumeUnit::ct_Per_L);  //Reference range is 1.5-3.8e9 per liter
   //Note that RedBloodCellAcetylcholinesterase is initialized in Drugs file because Drugs is processed before Blood Chemistry
   GetInflammatoryResponse().Initialize();
   m_ArterialOxygen_mmHg.Sample(m_aortaO2->GetPartialPressure(PressureUnit::mmHg));
   m_ArterialCarbonDioxide_mmHg.Sample(m_aortaCO2->GetPartialPressure(PressureUnit::mmHg));
   GetCarbonMonoxideSaturation().SetValue(0);
+  GetViralLoad().SetValue(0.0, AmountPerVolumeUnit::ct_Per_uL);
 
   m_RhFactorMismatch_ct = 0.0; // Only matters when patient is negative type
   m_RhTransfusionReactionVolume_mL = 0.0;
@@ -130,6 +155,36 @@ void BloodChemistry::Initialize()
   m_d3Agglutinate_ct = 0.0;
   m_4Agglutinate_ct = 0.0;
   m_RemovedRBC_ct = 0.0;
+
+    //radiation model parameters, first sets are growing within the marrow and thymus
+  m_progenitorLymphocytes_ct = 1.0;
+  m_progenitorLymphocytes_wd_ct = 0.0;
+  m_progenitorLymphocytes_d_ct = 0.0;
+  m_progenitorLymphocytes_hd_ct = 0.0;
+
+  m_maturingLymphocytes_ct = 1.0;
+  m_maturingLymphocytes_d_ct = 0.0;
+  m_maturingLymphocytes_hd_ct = 0.0;
+
+  //circulating counts
+  m_Lymphocytes_ct = 1.0;
+  m_Lymphocytes_d_ct = 0.0;
+  m_Lymphocytes_hd_ct = 0.0;
+
+  //absorbed set to zero
+  m_radAbsorbed_Gy = 0.0;
+
+  //m_data.GetDataTrack().Probe("m_progenitorLymphocytes_ct ", m_progenitorLymphocytes_ct);
+  //m_data.GetDataTrack().Probe("m_progenitorLymphocytes_wd_ct ", m_progenitorLymphocytes_wd_ct);
+  //m_data.GetDataTrack().Probe("m_progenitorLymphocytes_d_ct ", m_progenitorLymphocytes_d_ct);
+  //m_data.GetDataTrack().Probe("m_progenitorLymphocytes_hd_ct ", m_progenitorLymphocytes_hd_ct);
+  //m_data.GetDataTrack().Probe("m_maturingLymphocytes_ct ", m_maturingLymphocytes_ct);
+  //m_data.GetDataTrack().Probe("m_maturingLymphocytes_d_ct ", m_maturingLymphocytes_d_ct);
+  //m_data.GetDataTrack().Probe("m_maturingLymphocytes_hd_ct ", m_maturingLymphocytes_hd_ct);
+  //m_data.GetDataTrack().Probe("m_Lymphocytes_ct ", m_Lymphocytes_ct);
+  //m_data.GetDataTrack().Probe("m_Lymphocytes_d_ct ", m_Lymphocytes_d_ct);
+  //m_data.GetDataTrack().Probe("m_Lymphocytes_hd_ct ", m_Lymphocytes_hd_ct);
+  //m_data.GetDataTrack().Probe("m_radAbsorbed_Gy ", m_radAbsorbed_Gy);
 
   Process(); // Calculate the initial system values
 }
@@ -149,6 +204,19 @@ bool BloodChemistry::Load(const CDM::BioGearsBloodChemistrySystemData& in)
   m_d3Agglutinate_ct = in.ThreeCellDonAgglutinates_ct();
   m_4Agglutinate_ct = in.FourCellAgglutinates_ct();
   m_RemovedRBC_ct = in.RemovedRBC_ct();
+
+  //radiation model values 
+  m_progenitorLymphocytes_ct = in.progenitorLymphocytes();
+  m_progenitorLymphocytes_wd_ct = in.progenitorLymphocytes_wd();
+  m_progenitorLymphocytes_d_ct = in.progenitorLymphocytes_d();
+  m_progenitorLymphocytes_hd_ct = in.progenitorLymphocytes_hd();
+  m_maturingLymphocytes_ct = in.maturingLymphocytes();
+  m_maturingLymphocytes_d_ct = in.maturingLymphocytes_d();
+  m_maturingLymphocytes_hd_ct = in.maturingLymphocytes_hd();
+  m_Lymphocytes_ct = in.Lymphocytes();
+  m_Lymphocytes_d_ct = in.Lymphocytes_d();
+  m_Lymphocytes_hd_ct = in.Lymphocytes_hd();
+  m_radAbsorbed_Gy = in.RadiationAbsorbed();
 
   BioGearsSystem::LoadState();
 
@@ -174,6 +242,19 @@ void BloodChemistry::Unload(CDM::BioGearsBloodChemistrySystemData& data) const
   data.ThreeCellDonAgglutinates_ct(m_d3Agglutinate_ct);
   data.FourCellAgglutinates_ct(m_4Agglutinate_ct);
   data.RemovedRBC_ct(m_RemovedRBC_ct);
+
+    //radiation model values
+  data.progenitorLymphocytes(m_progenitorLymphocytes_ct);
+  data.progenitorLymphocytes_wd(m_progenitorLymphocytes_wd_ct);
+  data.progenitorLymphocytes_d(m_progenitorLymphocytes_d_ct);
+  data.progenitorLymphocytes_hd(m_progenitorLymphocytes_hd_ct);
+  data.maturingLymphocytes(m_maturingLymphocytes_ct);
+  data.maturingLymphocytes_d(m_maturingLymphocytes_d_ct);
+  data.maturingLymphocytes_hd(m_maturingLymphocytes_hd_ct);
+  data.Lymphocytes(m_Lymphocytes_ct);
+  data.Lymphocytes_d(m_Lymphocytes_d_ct);
+  data.Lymphocytes_hd(m_Lymphocytes_hd_ct);
+  data.RadiationAbsorbed(m_radAbsorbed_Gy);
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -195,6 +276,9 @@ void BloodChemistry::SetUp()
   m_RhFactorMismatch_ct = 0.0; // Only matters when patient is negative type
   m_RhTransfusionReactionVolume_mL = 0.0;
 
+  m_dt_s = m_data.GetTimeStep().GetValue(TimeUnit::s);
+  m_dt_hr = m_data.GetTimeStep().GetValue(TimeUnit::hr);
+
   //Substance
   SESubstance* albumin = &m_data.GetSubstances().GetAlbumin();
   SESubstance* aminoAcids = &m_data.GetSubstances().GetAminoAcids();
@@ -208,6 +292,7 @@ void BloodChemistry::SetUp()
   SESubstance* insulin = &m_data.GetSubstances().GetInsulin();
   SESubstance* ketones = &m_data.GetSubstances().GetKetones();
   SESubstance* lactate = &m_data.GetSubstances().GetLactate();
+  m_Ondansetron = m_data.GetSubstances().GetSubstance("Ondansetron");
   SESubstance* potassium = &m_data.GetSubstances().GetPotassium();
   SESubstance* rbc = &m_data.GetSubstances().GetRBC();
   SESubstance* sodium = &m_data.GetSubstances().GetSodium();
@@ -253,7 +338,6 @@ void BloodChemistry::SetUp()
   m_pulmonaryVeinsO2 = pulmonaryVeins->GetSubstanceQuantity(m_data.GetSubstances().GetO2());
   m_pulmonaryVeinsCO2 = pulmonaryVeins->GetSubstanceQuantity(m_data.GetSubstances().GetCO2());
 
-  double dT_s = m_data.GetTimeStep().GetValue(TimeUnit::s);
   m_PatientActions = &m_data.GetActions().GetPatientActions();
 
   m_InflammatoryResponse = &GetInflammatoryResponse();
@@ -273,6 +357,9 @@ void BloodChemistry::AtSteadyState()
 void BloodChemistry::PreProcess()
 {
   InflammatoryResponse();
+  AcuteRadiationSyndrome();
+  CheckRadiationSymptoms();
+  CheckViralSymptoms();
 }
 
 //--------------------------------------------------------------------------------------------------
@@ -451,8 +538,219 @@ void BloodChemistry::PostProcess()
     }
   }
 }
+//--------------------------------------------------------------------------------------------------
+/// \brief
+/// Computes the physiological impact of acute radiation exposure.
+///
+/// \details
+/// Computes the bone marrow impacts due to radiation exposure in a human. This impact will be 
+/// reflected in the complete blood count. We are mechanistically modeling bone marrow lymphopoiesis
+/// The other cell types are going to be scaled on this model in an appropriate way. Enums that impact 
+/// the patient will be flagged in a separate function
+//--------------------------------------------------------------------------------------------------
+void BloodChemistry::AcuteRadiationSyndrome()
+{
+  //make sure we have the appropriate action:
+  if (!m_PatientActions->HasRadiationAbsorbedDose()) {
+    return;
+  }
+
+  //N is the exposed dose, consistent with the paper we are basing this on
+  auto radDose = m_PatientActions->GetRadiationAbsorbedDose()->GetDose().GetValue(EnergyPerMassUnit::J_Per_kg);
+  const double maxWorkRate_W = m_Patient->GetMaxWorkRate().GetValue(PowerUnit::W);
+  const double basalMetabolicRate_kcal_Per_day = m_Patient->GetBasalMetabolicRate().GetValue(PowerUnit::kcal_Per_day);
+  const double currentMetabolicRate_kcal_Per_day = m_data.GetEnergy().GetTotalMetabolicRate().GetValue(PowerUnit::kcal_Per_day);
+  double metabolicStress = 0.0;
+  const double kcal_Per_day_Per_Watt = 20.6362855;
+  double EnergyIncrement_kcal_Per_day = 0.0;
+
+
+  //define parameters
+  //control parameters  
+  const double alpha_Per_Day = 0.8 / 86400.0;   //scale to our timescale
+  const double gamma_Per_Day = 0.8 / 86400.0;
+  const double delta_Per_Day = 0.1 / 86400.0;
+  const double kappa_Per_Day = 0.4 / 86400.0;
+  const double sigma1 = 1.0;
+  const double sigma2 = 0.06;
+  const double sigma3 = 0.01;
+  const double phi = 1.01;
+  double speed = 5.0;
+
+  //neutrophil delay
+  const double delay = 3600.0; //one hour delay
+
+  //radiobiological paramters
+  const double D1_J_Per_Kg = 1.4;
+  const double Dc_J_Per_Kg = 0.5;
+  const double Dm1_J_Per_Kg = 13.0;
+  const double D2_J_Per_Kg = 1.4;
+  const double Dm2_J_Per_Kg = 13.0;
+  const double D3_J_Per_Kg = 0.9;   //this value has been adjusted for physiological response
+  const double Dm3_J_Per_Kg = 6.5;
+  const double v1_Per_Day = 0.6 / 86400.0;
+  const double vc_Per_Day = 0.6 / 86400.0; //this one isn't defined in the literature
+  const double v2_Per_Day = 7.0 / 86400.0;
+  const double xhat = 1.936e9;   //average number of lympohocytes
+  const double neutrophilhat = 4.0e9; //average number of neutrophiles per liter
+  const double nu_Per_Day = (v2_Per_Day * phi) / v1_Per_Day; //capital gamma in the model
+
+  //neutrophil/lymphocyte count (want this to be nondimensional for now): 
+  double neutrophilAmount = GetNeutrophilCellCount().GetValue(AmountPerVolumeUnit::ct_Per_L) / neutrophilhat;
+  double lymphoAmount = GetLymphocyteCellCount().GetValue(AmountPerVolumeUnit::ct_Per_L) / xhat;
+  double diff = 0.0;
+
+  //rho is a ratio of d1 and dm1... 
+  double rho1 = (Dm1_J_Per_Kg / (D1_J_Per_Kg - 1));
+  double rho2 = (Dm2_J_Per_Kg / (D2_J_Per_Kg - 1));
+  double rho3 = (Dm3_J_Per_Kg / (D3_J_Per_Kg - 1));
+
+  // a single dose of 3-8 gy over one time step will break the model so we will administer the dose over a few hours to keep the dynamics
+  // we will assume the exposure is fairly high over a period of time, around 0.05 gy / min ( some of the middle exposures at chernobyl)
+  /// \todo: make this configurable from the action
+  const double radiationRate_Per_s = (0.05) / 60;
+  double radiationRate_Per_dt = radiationRate_Per_s * m_dt_s;
+
+  if (m_radAbsorbed_Gy >= radDose) {
+    radiationRate_Per_dt = 0.0;   //turn off the exposure once the action has been reached
+  }
+
+  //solve the system
+  
+  //simplify the calculation: 
+  auto mu1 = sigma1 * (m_progenitorLymphocytes_ct + m_progenitorLymphocytes_wd_ct + phi * m_progenitorLymphocytes_d_ct + nu_Per_Day * m_progenitorLymphocytes_hd_ct);
+  auto mu2 = sigma2 * (m_maturingLymphocytes_ct + phi * m_maturingLymphocytes_d_ct + nu_Per_Day * m_maturingLymphocytes_hd_ct);
+  auto mu3 = sigma3 * (m_Lymphocytes_ct + phi * m_Lymphocytes_d_ct + nu_Per_Day * m_Lymphocytes_hd_ct);
+  auto beta = ((alpha_Per_Day / gamma_Per_Day) - 1) / (xhat * (sigma1 + sigma2 * (gamma_Per_Day / delta_Per_Day) + sigma3 * (gamma_Per_Day / phi)));
+  auto B = alpha_Per_Day / (1 + beta * (mu1 + mu2 + mu3));
+
+  m_progenitorLymphocytes_ct += m_dt_s * speed * (B * m_progenitorLymphocytes_ct - gamma_Per_Day * m_progenitorLymphocytes_ct - (radiationRate_Per_dt / Dc_J_Per_Kg) * m_progenitorLymphocytes_ct);
+  m_progenitorLymphocytes_wd_ct += m_dt_s * speed * (B * m_progenitorLymphocytes_wd_ct - gamma_Per_Day * m_progenitorLymphocytes_wd_ct + ((radiationRate_Per_dt / Dc_J_Per_Kg) - (radiationRate_Per_dt / D1_J_Per_Kg)) * m_progenitorLymphocytes_ct - vc_Per_Day * m_progenitorLymphocytes_wd_ct);
+  m_progenitorLymphocytes_d_ct += m_dt_s * speed * ((radiationRate_Per_dt / D1_J_Per_Kg) * (1 / (1 + rho1)) * m_progenitorLymphocytes_ct - v1_Per_Day * m_progenitorLymphocytes_d_ct);
+  m_progenitorLymphocytes_hd_ct += m_dt_s * speed * ((radiationRate_Per_dt / Dm1_J_Per_Kg) * (rho1 / (1 + rho1)) * m_progenitorLymphocytes_ct - v2_Per_Day * m_progenitorLymphocytes_hd_ct);
+
+  m_maturingLymphocytes_ct += m_dt_s * speed * (gamma_Per_Day * m_progenitorLymphocytes_ct - delta_Per_Day * m_maturingLymphocytes_ct - (radiationRate_Per_dt / D2_J_Per_Kg) * m_maturingLymphocytes_ct);
+  m_maturingLymphocytes_d_ct += m_dt_s * speed * ((radiationRate_Per_dt / D2_J_Per_Kg) * (1 / (1 + rho1)) * m_maturingLymphocytes_ct - v1_Per_Day * m_maturingLymphocytes_d_ct);
+  m_maturingLymphocytes_hd_ct += m_dt_s * speed * ((radiationRate_Per_dt / Dm2_J_Per_Kg) * (rho1 / (1 + rho1)) * m_maturingLymphocytes_ct - v2_Per_Day * m_maturingLymphocytes_hd_ct);
+
+  //circulating counts
+  m_Lymphocytes_ct += m_dt_s * speed * (delta_Per_Day * m_maturingLymphocytes_ct - kappa_Per_Day * m_Lymphocytes_ct - (radiationRate_Per_dt / D3_J_Per_Kg) * m_Lymphocytes_ct);
+  m_Lymphocytes_d_ct += m_dt_s * speed * ((radiationRate_Per_dt / D3_J_Per_Kg) * (1 / (1 + rho1)) * m_Lymphocytes_ct - v1_Per_Day * m_Lymphocytes_d_ct);
+  m_Lymphocytes_hd_ct += m_dt_s * speed * ((radiationRate_Per_dt / Dm3_J_Per_Kg) * (rho1 / (1 + rho1)) * m_Lymphocytes_ct - v2_Per_Day * m_Lymphocytes_hd_ct);
+
+  GetLymphocyteCellCount().SetValue(m_Lymphocytes_ct * xhat, AmountPerVolumeUnit::ct_Per_L); //Reference range is 1.3-3.5e9 per liter, scaling back to get a count
+
+  if (m_data.GetSimulationTime().GetValue(TimeUnit::s) > delay) {
+    //scale neutrophils super simple exponential, using hr timestep to slow things down
+    diff = m_dt_hr * (neutrophilAmount - lymphoAmount);
+    GetNeutrophilCellCount().IncrementValue(-diff * neutrophilhat, AmountPerVolumeUnit::ct_Per_L );
+  }
+
+
+  //thermal effects due to lymphocyt changes, scale based upon damaged lymphocyte
+  BLIM(m_Lymphocytes_ct, 0, 1);
+  metabolicStress = std::pow(m_Lymphocytes_ct, 2) - 2 * m_Lymphocytes_ct + 1;
+  EnergyIncrement_kcal_Per_day = m_dt_s * (basalMetabolicRate_kcal_Per_day + metabolicStress * maxWorkRate_W * kcal_Per_day_Per_Watt - currentMetabolicRate_kcal_Per_day) * 0.0002;
+
+  m_data.GetEnergy().GetTotalMetabolicRate().IncrementValue(EnergyIncrement_kcal_Per_day, PowerUnit::kcal_Per_day);
+  m_data.GetEnergy().GetExerciseEnergyDemand().IncrementValue(EnergyIncrement_kcal_Per_day, PowerUnit::kcal_Per_day);
+
+
+  //increment the exposure variable: 
+  m_radAbsorbed_Gy += radiationRate_Per_dt;
+
+  //testing probes
+  //m_data.GetDataTrack().Probe("m_progenitorLymphocytes_ct ", m_progenitorLymphocytes_ct);
+  //m_data.GetDataTrack().Probe("m_progenitorLymphocytes_wd_ct ", m_progenitorLymphocytes_wd_ct);
+  //m_data.GetDataTrack().Probe("m_progenitorLymphocytes_d_ct ", m_progenitorLymphocytes_d_ct);
+  //m_data.GetDataTrack().Probe("m_progenitorLymphocytes_hd_ct ", m_progenitorLymphocytes_hd_ct);
+  //m_data.GetDataTrack().Probe("m_maturingLymphocytes_ct ", m_maturingLymphocytes_ct);
+  //m_data.GetDataTrack().Probe("m_maturingLymphocytes_d_ct ", m_maturingLymphocytes_d_ct);
+  //m_data.GetDataTrack().Probe("m_maturingLymphocytes_hd_ct ", m_maturingLymphocytes_hd_ct);
+  //m_data.GetDataTrack().Probe("m_Lymphocytes_ct ", m_Lymphocytes_ct);
+  //m_data.GetDataTrack().Probe("m_Lymphocytes_d_ct ", m_Lymphocytes_d_ct);
+  //m_data.GetDataTrack().Probe("m_Lymphocytes_hd_ct ", m_Lymphocytes_hd_ct);
+  //m_data.GetDataTrack().Probe("m_radAbsorbed_Gy ", m_radAbsorbed_Gy);
+}
+//--------------------------------------------------------------------------------------------------
+/// \brief
+/// Checks the blood substance levels and set radiation specific events.
+///
+/// \details
+/// Checks the lymphocyte and neutrophil levels to determine patient events.
+/// These events are specific to radiation exposure but should expanded to be more general
+//--------------------------------------------------------------------------------------------------
+void BloodChemistry::CheckRadiationSymptoms()
+{
+    //get lymphocyte value: 
+    double lymph_ct_Per_L = GetLymphocyteCellCount().GetValue(AmountPerVolumeUnit::ct_Per_L);
+    const double xhat_ct_Per_L = 1.936e9; //average number of lympohocytes
+
+    //mild
+    if (0.5 < lymph_ct_Per_L / xhat_ct_Per_L && lymph_ct_Per_L / xhat_ct_Per_L < 0.6) {
+      m_data.GetPatient().SetEvent(CDM::enumPatientEvent::MildDiarrhea, true, m_data.GetSimulationTime());
+      m_data.GetPatient().SetEvent(CDM::enumPatientEvent::MildHeadache, true, m_data.GetSimulationTime());
+      m_data.GetPatient().SetEvent(CDM::enumPatientEvent::SevereDiarrhea, false, m_data.GetSimulationTime());
+      m_data.GetPatient().SetEvent(CDM::enumPatientEvent::SevereHeadache, false, m_data.GetSimulationTime());
+      m_data.GetPatient().SetEvent(CDM::enumPatientEvent::Nausea, true, m_data.GetSimulationTime());
+      m_data.GetPatient().SetEvent(CDM::enumPatientEvent::Vomiting, false, m_data.GetSimulationTime());
+    }
+
+    //severe
+    if (lymph_ct_Per_L / xhat_ct_Per_L < 0.4) {
+      m_data.GetPatient().SetEvent(CDM::enumPatientEvent::MildDiarrhea, false, m_data.GetSimulationTime());
+      m_data.GetPatient().SetEvent(CDM::enumPatientEvent::MildHeadache, false, m_data.GetSimulationTime());
+      m_data.GetPatient().SetEvent(CDM::enumPatientEvent::SevereDiarrhea, true, m_data.GetSimulationTime());
+      m_data.GetPatient().SetEvent(CDM::enumPatientEvent::SevereHeadache, true, m_data.GetSimulationTime());
+      m_data.GetPatient().SetEvent(CDM::enumPatientEvent::Nausea, false, m_data.GetSimulationTime());
+      m_data.GetPatient().SetEvent(CDM::enumPatientEvent::Vomiting, true, m_data.GetSimulationTime());
+
+    }
+
+ }
 
 //--------------------------------------------------------------------------------------------------
+ /// \brief
+ /// Checks the blood substance levels and set ebola specific events.
+ ///
+ /// \details
+ /// Checks the Viral load levels to determine patient events.
+ /// These events are specific to radiation exposure but should expanded to be more general
+ //--------------------------------------------------------------------------------------------------
+ void BloodChemistry::CheckViralSymptoms()
+ {
+   //get lymphocyte value:
+   double viralLoad = GetViralLoad().GetValue(AmountPerVolumeUnit::ct_Per_uL);
+   double ondansetron_mg_Per_L = 0.0;
+   if (m_data.GetSubstances().IsActive(*m_Ondansetron)) {
+     ondansetron_mg_Per_L = m_data.GetCompartments().GetLiquidCompartment(BGE::VascularCompartment::Aorta)->GetSubstanceQuantity(*m_Ondansetron)->GetConcentration().GetValue(MassPerVolumeUnit::mg_Per_L);
+   }
+   //mild
+   if (2 < viralLoad && viralLoad < 9 && ondansetron_mg_Per_L < 0.1) {
+     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::MildDiarrhea, true, m_data.GetSimulationTime());
+     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::MildHeadache, true, m_data.GetSimulationTime());
+     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::SevereDiarrhea, false, m_data.GetSimulationTime());
+     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::SevereHeadache, false, m_data.GetSimulationTime());
+     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::Nausea, true, m_data.GetSimulationTime());
+     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::Vomiting, false, m_data.GetSimulationTime());
+   }
+
+   //severe
+   if (viralLoad > 10.0 && ondansetron_mg_Per_L < 0.1) {
+     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::MildDiarrhea, false, m_data.GetSimulationTime());
+     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::MildHeadache, false, m_data.GetSimulationTime());
+     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::SevereDiarrhea, true, m_data.GetSimulationTime());
+     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::SevereHeadache, true, m_data.GetSimulationTime());
+     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::Nausea, false, m_data.GetSimulationTime());
+     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::Vomiting, true, m_data.GetSimulationTime());
+   }
+   if (ondansetron_mg_Per_L > 0.1) {
+     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::Vomiting, false, m_data.GetSimulationTime());
+     m_data.GetPatient().SetEvent(CDM::enumPatientEvent::Nausea, false, m_data.GetSimulationTime());
+   }
+ }
+
+  //--------------------------------------------------------------------------------------------------
 /// \brief
 /// Checks the blood substance (oxygen, carbon dioxide, glucose, etc.) levels and sets events.
 ///
@@ -781,10 +1079,12 @@ bool BloodChemistry::CalculateCompleteBloodCount(SECompleteBloodCount& cbc)
   cbc.Reset();
   cbc.GetHematocrit().Set(GetHematocrit());
   cbc.GetHemoglobin().Set(m_data.GetSubstances().GetHb().GetBloodConcentration());
+  cbc.GetLymphocyteCellCount().SetValue(GetLymphocyteCellCount().GetValue(AmountPerVolumeUnit::ct_Per_uL), AmountPerVolumeUnit::ct_Per_uL);
   cbc.GetPlateletCount().SetValue(325000, AmountPerVolumeUnit::ct_Per_uL); // Hardcoded for now, don't support PlateletCount yet
   cbc.GetMeanCorpuscularHemoglobin().SetValue(m_data.GetConfiguration().GetMeanCorpuscularHemoglobin(MassPerAmountUnit::pg_Per_ct), MassPerAmountUnit::pg_Per_ct);
   cbc.GetMeanCorpuscularHemoglobinConcentration().SetValue(m_data.GetSubstances().GetHb().GetBloodConcentration(MassPerVolumeUnit::g_Per_dL) / GetHematocrit().GetValue(), MassPerVolumeUnit::g_Per_dL); //Average range should be 32-36 g/dL. (https://en.wikipedia.org/wiki/Mean_corpuscular_hemoglobin_concentration)
   cbc.GetMeanCorpuscularVolume().SetValue(m_data.GetConfiguration().GetMeanCorpuscularVolume(VolumeUnit::uL), VolumeUnit::uL);
+  cbc.GetNeutrophilCount().SetValue(GetNeutrophilCellCount().GetValue(AmountPerVolumeUnit::ct_Per_uL), AmountPerVolumeUnit::ct_Per_uL);   ///\TODO: update with correct data
   double rbcCount_ct_Per_uL = m_venaCava->GetSubstanceQuantity(m_data.GetSubstances().GetRBC())->GetMolarity(AmountPerVolumeUnit::ct_Per_uL);
   cbc.GetRedBloodCellCount().SetValue(rbcCount_ct_Per_uL, AmountPerVolumeUnit::ct_Per_uL);
   double wbcCount_ct_Per_uL = m_venaCava->GetSubstanceQuantity(m_data.GetSubstances().GetWBC())->GetMolarity(AmountPerVolumeUnit::ct_Per_uL); //m_data.GetSubstances().GetWBC().GetCellCount(AmountPerVolumeUnit::ct_Per_uL);
@@ -799,7 +1099,32 @@ SEScalar& BloodChemistry::CalculateCoagulationSOFA()
   sofa->SetValue(0.0);
   return *sofa;
 }
-
+//--------------------------------------------------------------------------------------------------
+/// \brief
+/// Sets data on the prothrombin time assesment object.
+///
+/// \details
+/// Sets data on the prothrombintime object to create the [ptt](@ref bloodchemistry-assessments).
+//--------------------------------------------------------------------------------------------------
+bool BloodChemistry::CalculateProthrombinTime(SEProthrombinTime& ptt)
+{
+    //super basic scaling as a function of viral load
+    ///\todo: make this a function of actual coagulation substances
+  double viralLoad = GetViralLoad().GetValue(AmountPerVolumeUnit::ct_Per_uL);
+  ptt.GetInternationalNormalizedRatio().Set(0.9);   //average value
+  if (viralLoad > ZERO_APPROX) {
+    if (viralLoad > 1 && viralLoad < 3) {
+      ptt.GetInternationalNormalizedRatio().Set(1.3);
+    } 
+    else if (3 < viralLoad && viralLoad < 7) {
+      ptt.GetInternationalNormalizedRatio().Set(1.9);
+    } 
+    else if (7 < viralLoad) {
+      ptt.GetInternationalNormalizedRatio().Set(2.5);
+    }
+  }
+  return true;
+}
 //--------------------------------------------------------------------------------------------------
 /// \brief
 /// Reaction when incompatible blood is transfused
@@ -899,12 +1224,12 @@ void BloodChemistry::CalculateHemolyticTransfusionReaction(bool rhMismatch)
   double twoK2 = tuning22 * ((D2 + D2) * (R2 + R2)) / (4.0 * D1 * R1);
   double threeK1 = tuning13 * ((D3 + D1) * (R3 + R1)) / (4.0 * D1 * R1);
 
-  double newC1RBC_patient = patientRBC + (RBC_birth * dt) - (RBC_death * dt) - (dt * ((oneK1 * patientRBC * donorRBC) + (twoK1 * m_2Agglutinate_ct * patientRBC) + (threeK1 * m_d3Agglutinate_ct * patientRBC)));
-  double newC1RBC_donor = donorRBC - (RBC_death * dt) - (dt * ((oneK1 * patientRBC * donorRBC) + (twoK1 * m_2Agglutinate_ct * donorRBC) + (threeK1 * m_p3Agglutinate_ct * donorRBC)));
-  double newC2RBC = m_2Agglutinate_ct + (dt * ((oneK1 * patientRBC * donorRBC) - (twoK1 * m_2Agglutinate_ct * patientRBC) - (twoK1 * m_2Agglutinate_ct * donorRBC) - (twoK2 * m_2Agglutinate_ct * m_2Agglutinate_ct)));
-  double newC3RBC_patient = m_p3Agglutinate_ct + (dt * ((twoK1 * m_2Agglutinate_ct * patientRBC) - (threeK1 * m_p3Agglutinate_ct * donorRBC)));
-  double newC3RBC_donor = m_d3Agglutinate_ct + (dt * ((twoK1 * m_2Agglutinate_ct * donorRBC) - (threeK1 * m_d3Agglutinate_ct * patientRBC)));
-  double newC4RBC = m_4Agglutinate_ct + (dt * ((twoK2 * m_2Agglutinate_ct * m_2Agglutinate_ct) + (threeK1 * m_d3Agglutinate_ct * patientRBC) + (threeK1 * m_p3Agglutinate_ct * donorRBC)));
+  double newC1RBC_patient = patientRBC + (RBC_birth * m_dt_s) - (RBC_death * m_dt_s) - (m_dt_s * ((oneK1 * patientRBC * donorRBC) + (twoK1 * m_2Agglutinate_ct * patientRBC) + (threeK1 * m_d3Agglutinate_ct * patientRBC)));
+  double newC1RBC_donor = donorRBC - (RBC_death * m_dt_s) - (m_dt_s * ((oneK1 * patientRBC * donorRBC) + (twoK1 * m_2Agglutinate_ct * donorRBC) + (threeK1 * m_p3Agglutinate_ct * donorRBC)));
+  double newC2RBC = m_2Agglutinate_ct + (m_dt_s * ((oneK1 * patientRBC * donorRBC) - (twoK1 * m_2Agglutinate_ct * patientRBC) - (twoK1 * m_2Agglutinate_ct * donorRBC) - (twoK2 * m_2Agglutinate_ct * m_2Agglutinate_ct)));
+  double newC3RBC_patient = m_p3Agglutinate_ct + (m_dt_s * ((twoK1 * m_2Agglutinate_ct * patientRBC) - (threeK1 * m_p3Agglutinate_ct * donorRBC)));
+  double newC3RBC_donor = m_d3Agglutinate_ct + (m_dt_s * ((twoK1 * m_2Agglutinate_ct * donorRBC) - (threeK1 * m_d3Agglutinate_ct * patientRBC)));
+  double newC4RBC = m_4Agglutinate_ct + (m_dt_s * ((twoK2 * m_2Agglutinate_ct * m_2Agglutinate_ct) + (threeK1 * m_d3Agglutinate_ct * patientRBC) + (threeK1 * m_p3Agglutinate_ct * donorRBC)));
 
   m_patientRBC_ct = newC1RBC_patient;
   LLIM(m_patientRBC_ct, 0.0);
@@ -1077,6 +1402,7 @@ void BloodChemistry::InflammatoryResponse()
 {
   std::vector<CDM::enumInflammationSource> sources = m_InflammatoryResponse->GetInflammationSources();
   double burnTotalBodySurfaceArea = 0.0;
+  double ebolaTemp = 0.0;
 
   if (m_data.GetActions().GetPatientActions().HasInfection()) {
     if (std::find(sources.begin(), sources.end(), CDM::enumInflammationSource::Infection) == sources.end()) {
@@ -1099,6 +1425,43 @@ void BloodChemistry::InflammatoryResponse()
       m_InflammatoryResponse->SetActiveTLR(CDM::enumOnOff::On);
       m_InflammatoryResponse->GetInflammationSources().push_back(CDM::enumInflammationSource::Infection);
     }
+  }
+  if (m_data.GetActions().GetPatientActions().HasEbola()) {
+    if (std::find(sources.begin(), sources.end(), CDM::enumInflammationSource::Ebola) == sources.end()) {
+      double initialPathogen = 0.0;
+      switch (m_data.GetActions().GetPatientActions().GetEbola()->GetSeverity()) {
+      case CDM::enumInfectionSeverity::Mild:
+        initialPathogen = 1.0e6;
+        break;
+      case CDM::enumInfectionSeverity::Moderate:
+        initialPathogen = 5.0e6;
+        break;
+      case CDM::enumInfectionSeverity::Severe:
+        initialPathogen = 8.0e6;
+        break;
+      default:
+        initialPathogen = 1.0e6; //Default to very mild infection
+      }
+
+      m_InflammatoryResponse->GetLocalPathogen().SetValue(initialPathogen);
+      m_InflammatoryResponse->SetActiveTLR(CDM::enumOnOff::On);
+      m_InflammatoryResponse->GetInflammationSources().push_back(CDM::enumInflammationSource::Ebola);
+    }
+  }
+  // mapping severity of the ebola infection to a tuning parameter to change inflammation dynamics
+  if (m_data.GetActions().GetPatientActions().HasEbola()) {
+    switch (m_data.GetActions().GetPatientActions().GetEbola()->GetSeverity()) {
+    case CDM::enumInfectionSeverity::Mild:
+      ebolaTemp = 0.1;
+      break;
+    case CDM::enumInfectionSeverity::Moderate:
+      ebolaTemp = 0.15;
+      break;
+    case CDM::enumInfectionSeverity::Severe:
+      ebolaTemp = 0.2;
+      break;
+    }
+    m_InflammatoryResponse->GetTrauma().SetValue(ebolaTemp); //This causes inflammatory mediators (particulalary IL-6) to peak around 4 hrs at levels similar to those induced by pathogen
   }
   if (m_data.GetActions().GetPatientActions().HasBurnWound()) {
     burnTotalBodySurfaceArea = m_data.GetActions().GetPatientActions().GetBurnWound()->GetTotalBodySurfaceArea().GetValue();
@@ -1148,8 +1511,6 @@ void BloodChemistry::InflammatoryResponse()
   iTime = m_InflammatoryResponse->GetInflammationTime(TimeUnit::hr);
 
   //------------------------------Model Parameters-----------------------------
-  //Time
-  double dt_hr = m_data.GetTimeStep().GetValue(TimeUnit::hr);
   double scale = 1.0; //This parameter can be set very high to investigate state equation trajectores (i.e. set to 60 to simulate 30 hrs in 30 min).  Note that there is no guarantee of validity of other BG outputs
   //----Tissue parameters are taken from Dominguez2017Mathematical; kap = growth rate, psi = degradation rate, eps = inhibition, del = decay (other params defined)
   //Tissue pathogen
@@ -1218,9 +1579,16 @@ void BloodChemistry::InflammatoryResponse()
   if (burnTotalBodySurfaceArea != 0) {
     //Burns inflammation happens on a differnt time scale.  These parameters were tuned for infecton--return to nominal values
     kDTR = 11.0 * burnTotalBodySurfaceArea; //We assume that larger burns inflict damage more rapidly
-    kTr = 0.45 / burnTotalBodySurfaceArea; //We assume that larger burns take longer for trauma to resolve
+    kTr = 0.25 / burnTotalBodySurfaceArea; //We assume that larger burns take longer for trauma to resolve
     tiMin = 0.008; //Promotes faster damage accumulation
     kD6 = 0.3, xD6 = 0.25, kD = 0.1, kNTNF = 0.2, kN6 = 0.557, hD6 = 4, h66 = 4.0, x1210 = 0.049;
+    scale = 1.0;
+  }
+  if (m_InflammatoryResponse->HasInflammationSource(CDM::enumInflammationSource::Ebola)) {
+    //for ebola we assume the patient has been incubating for 8 days, after this time inflammation will occur on a rapid time scale.  These parameters were tuned for infecton--return to nominal values
+    //kapP *= ebolaTemp;
+    //thetaP *= 0.1;
+    double kPS = 6.9e1; //reduce Background immune response to pathogen in blood for ebola 
     scale = 1.0;
   }
   if (PB > ZERO_APPROX) {
@@ -1286,31 +1654,33 @@ void BloodChemistry::InflammatoryResponse()
   dTI = kD * (1.0 - TI) * (TI - tiMin) * TI - (TI - tiMin) * (kDB * fB + kD6 * GeneralMath::HillActivation(I6, xD6, hD6) + kDTR * TR) * (1.0 / (std::pow(xDNO, 2.0) + std::pow(NO, 2.0)));
 
   //------------------------Update State-----------------------------------------------
-  m_InflammatoryResponse->GetLocalPathogen().IncrementValue(dPT * dt_hr * scale);
-  m_InflammatoryResponse->GetLocalMacrophage().IncrementValue(dMT * dt_hr * scale);
-  m_InflammatoryResponse->GetLocalNeutrophil().IncrementValue(dNT * dt_hr * scale);
-  m_InflammatoryResponse->GetLocalBarrier().IncrementValue(dB * dt_hr * scale);
-  m_InflammatoryResponse->GetBloodPathogen().IncrementValue(dPB * dt_hr * scale);
-  m_InflammatoryResponse->GetTrauma().IncrementValue(dTR * dt_hr * scale);
-  m_InflammatoryResponse->GetMacrophageResting().IncrementValue(dMR * dt_hr * scale);
-  m_InflammatoryResponse->GetMacrophageActive().IncrementValue(dMA * dt_hr * scale);
-  m_InflammatoryResponse->GetNeutrophilResting().IncrementValue(dNR * dt_hr * scale);
-  m_InflammatoryResponse->GetNeutrophilActive().IncrementValue(dNA * dt_hr * scale);
-  m_InflammatoryResponse->GetInducibleNOS().IncrementValue(dINOS * dt_hr * scale);
-  m_InflammatoryResponse->GetInducibleNOSPre().IncrementValue(dINOSd * dt_hr * scale);
-  m_InflammatoryResponse->GetConstitutiveNOS().IncrementValue(dENOS * dt_hr * scale);
-  m_InflammatoryResponse->GetNitrate().IncrementValue(dNO3 * dt_hr * scale);
-  m_InflammatoryResponse->GetTumorNecrosisFactor().IncrementValue(dTNF * dt_hr * scale);
-  m_InflammatoryResponse->GetInterleukin6().IncrementValue(dI6 * dt_hr * scale);
-  m_InflammatoryResponse->GetInterleukin10().IncrementValue(dI10 * dt_hr * scale);
-  m_InflammatoryResponse->GetInterleukin12().IncrementValue(dI12 * dt_hr * scale);
-  m_InflammatoryResponse->GetCatecholamines().IncrementValue(dCA * dt_hr * scale);
-  m_InflammatoryResponse->GetAutonomicResponseLevel().IncrementValue(dA * dt_hr * scale);
-  m_InflammatoryResponse->GetTissueIntegrity().IncrementValue(dTI * dt_hr * scale);
+  m_InflammatoryResponse->GetLocalPathogen().IncrementValue(dPT * m_dt_hr * scale);
+  m_InflammatoryResponse->GetLocalMacrophage().IncrementValue(dMT * m_dt_hr * scale);
+  m_InflammatoryResponse->GetLocalNeutrophil().IncrementValue(dNT * m_dt_hr * scale);
+  m_InflammatoryResponse->GetLocalBarrier().IncrementValue(dB * m_dt_hr * scale);
+  m_InflammatoryResponse->GetBloodPathogen().IncrementValue(dPB * m_dt_hr * scale);
+  m_InflammatoryResponse->GetTrauma().IncrementValue(dTR * m_dt_hr * scale);
+  m_InflammatoryResponse->GetMacrophageResting().IncrementValue(dMR * m_dt_hr * scale);
+  m_InflammatoryResponse->GetMacrophageActive().IncrementValue(dMA * m_dt_hr * scale);
+  m_InflammatoryResponse->GetNeutrophilResting().IncrementValue(dNR * m_dt_hr * scale);
+  m_InflammatoryResponse->GetNeutrophilActive().IncrementValue(dNA * m_dt_hr * scale);
+  m_InflammatoryResponse->GetInducibleNOS().IncrementValue(dINOS * m_dt_hr * scale);
+  m_InflammatoryResponse->GetInducibleNOSPre().IncrementValue(dINOSd * m_dt_hr * scale);
+  m_InflammatoryResponse->GetConstitutiveNOS().IncrementValue(dENOS * m_dt_hr * scale);
+  m_InflammatoryResponse->GetNitrate().IncrementValue(dNO3 * m_dt_hr * scale);
+  m_InflammatoryResponse->GetTumorNecrosisFactor().IncrementValue(dTNF * m_dt_hr * scale);
+  m_InflammatoryResponse->GetInterleukin6().IncrementValue(dI6 * m_dt_hr * scale);
+  m_InflammatoryResponse->GetInterleukin10().IncrementValue(dI10 * m_dt_hr * scale);
+  m_InflammatoryResponse->GetInterleukin12().IncrementValue(dI12 * m_dt_hr * scale);
+  m_InflammatoryResponse->GetCatecholamines().IncrementValue(dCA * m_dt_hr * scale);
+  m_InflammatoryResponse->GetAutonomicResponseLevel().IncrementValue(dA * m_dt_hr * scale);
+  m_InflammatoryResponse->GetTissueIntegrity().IncrementValue(dTI * m_dt_hr * scale);
   NO = iNOS * (1.0 + kNOMA * (m_InflammatoryResponse->GetMacrophageActive().GetValue() + m_InflammatoryResponse->GetNeutrophilActive().GetValue())) + eNOS; //Algebraic relationship, not differential
   m_InflammatoryResponse->GetNitricOxide().SetValue(NO);
   m_InflammatoryResponse->SetActiveTLR(TLR);
-  m_InflammatoryResponse->GetInflammationTime().IncrementValue(dt_hr, TimeUnit::hr);
+  m_InflammatoryResponse->GetInflammationTime().IncrementValue(m_dt_hr, TimeUnit::hr);
+  //for now viral and bacterial infections will be handeled the same way
+  GetViralLoad().SetValue(m_InflammatoryResponse->GetBloodPathogen().GetValue(), AmountPerVolumeUnit::ct_Per_uL);
 
   //------------------------Check to see if infection-induced inflammation has resolved sufficient to eliminate action-----------------------
   //Note that even though we remove the infection, we leave the inflammation source active.  This is because we want the inflammation markers

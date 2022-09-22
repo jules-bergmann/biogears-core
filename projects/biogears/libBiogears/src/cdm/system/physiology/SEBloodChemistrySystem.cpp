@@ -51,6 +51,8 @@ constexpr char idVenousBloodPH[] = "VenousBloodPH";
 constexpr char idVolumeFractionNeutralPhospholipidInPlasma[] = "VolumeFractionNeutralPhospholipidInPlasma";
 constexpr char idVolumeFractionNeutralLipidInPlasma[] = "VolumeFractionNeutralLipidInPlasma";
 constexpr char idWhiteBloodCellCount[] = "WhiteBloodCellCount";
+constexpr char idLymphocyteCellCount[] = "LymphocyteCellCount";
+constexpr char idNeutrophilCellCount[] = "NeutrophilCellCount";
 constexpr char idArterialCarbonDioxidePressure[] = "ArterialCarbonDioxidePressure";
 constexpr char idArterialOxygenPressure[] = "ArterialOxygenPressure";
 constexpr char idPulmonaryArterialCarbonDioxidePressure[] = "PulmonaryArterialCarbonDioxidePressure";
@@ -59,6 +61,7 @@ constexpr char idPulmonaryVenousCarbonDioxidePressure[] = "PulmonaryVenousCarbon
 constexpr char idPulmonaryVenousOxygenPressure[] = "PulmonaryVenousOxygenPressure";
 constexpr char idVenousCarbonDioxidePressure[] = "VenousCarbonDioxidePressure";
 constexpr char idVenousOxygenPressure[] = "VenousOxygenPressure";
+constexpr char idViralLoad[] = "ViralLoad";
 constexpr char idInflammtoryRespone[] = "InflammatoryResponse";
 
 SEBloodChemistrySystem::SEBloodChemistrySystem(Logger* logger)
@@ -76,6 +79,8 @@ SEBloodChemistrySystem::SEBloodChemistrySystem(Logger* logger)
   m_Hematocrit = nullptr;
   m_HemoglobinContent = nullptr;
   m_HemoglobinLostToUrine = nullptr;
+  m_LymphocyteCellCount = nullptr;
+  m_NeutrophilCellCount = nullptr;
   m_OxygenSaturation = nullptr;
   m_OxygenVenousSaturation = nullptr;
   m_Phosphate = nullptr;
@@ -101,6 +106,7 @@ SEBloodChemistrySystem::SEBloodChemistrySystem(Logger* logger)
   m_PulmonaryVenousOxygenPressure = nullptr;
   m_VenousCarbonDioxidePressure = nullptr;
   m_VenousOxygenPressure = nullptr;
+  m_ViralLoad = nullptr;
   m_InflammatoryResponse = nullptr;
 }
 //-------------------------------------------------------------------------------
@@ -125,6 +131,8 @@ void SEBloodChemistrySystem::Clear()
   SAFE_DELETE(m_Hematocrit);
   SAFE_DELETE(m_HemoglobinContent);
   SAFE_DELETE(m_HemoglobinLostToUrine);
+  SAFE_DELETE(m_LymphocyteCellCount);
+  SAFE_DELETE(m_NeutrophilCellCount);
   SAFE_DELETE(m_OxygenSaturation);
   SAFE_DELETE(m_OxygenVenousSaturation);
   SAFE_DELETE(m_Phosphate);
@@ -150,6 +158,7 @@ void SEBloodChemistrySystem::Clear()
   SAFE_DELETE(m_VenousOxygenPressure);
   SAFE_DELETE(m_ArterialCarbonDioxidePressure);
   SAFE_DELETE(m_VenousCarbonDioxidePressure);
+  SAFE_DELETE(m_ViralLoad);
   SAFE_DELETE(m_InflammatoryResponse);
 }
 //-------------------------------------------------------------------------------
@@ -189,6 +198,12 @@ const SEScalar* SEBloodChemistrySystem::GetScalar(const std::string& name)
   }
   if (name == idHemoglobinLostToUrine) {
     return &GetHemoglobinLostToUrine();
+  }
+  if (name == idLymphocyteCellCount) {
+    return &GetLymphocyteCellCount();
+  }
+  if (name == idNeutrophilCellCount) {
+    return &GetNeutrophilCellCount();
   }
   if (name == idOxygenSaturation) {
     return &GetOxygenSaturation();
@@ -262,6 +277,9 @@ const SEScalar* SEBloodChemistrySystem::GetScalar(const std::string& name)
   if (name == idVenousOxygenPressure) {
     return &GetVenousOxygenPressure();
   }
+  if (name == idViralLoad) {
+    return &GetViralLoad();
+  }
 
   //This applies to InflammationState values, as they are defined AcuteInflammatoryResponse-Pathogen, e.g.
   size_t split = name.find('-');
@@ -310,6 +328,12 @@ bool SEBloodChemistrySystem::Load(const CDM::BloodChemistrySystemData& in)
   }
   if (in.HemoglobinLostToUrine().present()) {
     GetHemoglobinLostToUrine().Load(in.HemoglobinLostToUrine().get());
+  }
+  if (in.LymphocyteCellCount().present()) {
+    GetLymphocyteCellCount().Load(in.LymphocyteCellCount().get());
+  }
+  if (in.NeutrophilCellCount().present()) {
+    GetNeutrophilCellCount().Load(in.NeutrophilCellCount().get());
   }
   if (in.OxygenSaturation().present()) {
     GetOxygenSaturation().Load(in.OxygenSaturation().get());
@@ -383,6 +407,9 @@ bool SEBloodChemistrySystem::Load(const CDM::BloodChemistrySystemData& in)
   if (in.VenousOxygenPressure().present()) {
     GetVenousOxygenPressure().Load(in.VenousOxygenPressure().get());
   }
+  if (in.ViralLoad().present()) {
+    GetViralLoad().Load(in.ViralLoad().get());
+  }
   if (in.InflammatoryResponse().present()) {
     GetInflammatoryResponse().Load(in.InflammatoryResponse().get());
   }
@@ -431,6 +458,12 @@ void SEBloodChemistrySystem::Unload(CDM::BloodChemistrySystemData& data) const
   }
   if (m_HemoglobinLostToUrine != nullptr) {
     data.HemoglobinLostToUrine(std::unique_ptr<CDM::ScalarMassData>(m_HemoglobinLostToUrine->Unload()));
+  }
+  if (m_LymphocyteCellCount != nullptr) {
+    data.LymphocyteCellCount(std::unique_ptr<CDM::ScalarAmountPerVolumeData>(m_LymphocyteCellCount->Unload()));
+  }
+  if (m_NeutrophilCellCount != nullptr) {
+    data.NeutrophilCellCount(std::unique_ptr<CDM::ScalarAmountPerVolumeData>(m_NeutrophilCellCount->Unload()));
   }
   if (m_OxygenSaturation != nullptr) {
     data.OxygenSaturation(std::unique_ptr<CDM::ScalarFractionData>(m_OxygenSaturation->Unload()));
@@ -503,6 +536,9 @@ void SEBloodChemistrySystem::Unload(CDM::BloodChemistrySystemData& data) const
   }
   if (m_VenousOxygenPressure != nullptr) {
     data.VenousOxygenPressure(std::unique_ptr<CDM::ScalarPressureData>(m_VenousOxygenPressure->Unload()));
+  }
+  if (m_ViralLoad != nullptr) {
+    data.ViralLoad(std::unique_ptr<CDM::ScalarAmountPerVolumeData>(m_ViralLoad->Unload()));
   }
   if (m_InflammatoryResponse != nullptr) {
     data.InflammatoryResponse(std::unique_ptr<CDM::InflammatoryResponseData>(m_InflammatoryResponse->Unload()));
@@ -750,6 +786,47 @@ double SEBloodChemistrySystem::GetHemoglobinLostToUrine(const MassUnit& unit) co
     return SEScalar::dNaN();
   }
   return m_HemoglobinLostToUrine->GetValue(unit);
+}
+//-------------------------------------------------------------------------------
+
+bool SEBloodChemistrySystem::HasLymphocyteCellCount() const
+{
+  return m_LymphocyteCellCount == nullptr ? false : m_LymphocyteCellCount->IsValid();
+}
+//-------------------------------------------------------------------------------
+SEScalarAmountPerVolume& SEBloodChemistrySystem::GetLymphocyteCellCount()
+{
+  if (m_LymphocyteCellCount == nullptr)
+    m_LymphocyteCellCount = new SEScalarAmountPerVolume();
+  return *m_LymphocyteCellCount;
+}
+//-------------------------------------------------------------------------------
+double SEBloodChemistrySystem::GetLymphocyteCellCount(const AmountPerVolumeUnit& unit) const
+{
+  if (m_LymphocyteCellCount == nullptr)
+    return SEScalar::dNaN();
+  return m_LymphocyteCellCount->GetValue(unit);
+}
+
+//-------------------------------------------------------------------------------
+
+bool SEBloodChemistrySystem::HasNeutrophilCellCount() const
+{
+  return m_NeutrophilCellCount == nullptr ? false : m_NeutrophilCellCount->IsValid();
+}
+//-------------------------------------------------------------------------------
+SEScalarAmountPerVolume& SEBloodChemistrySystem::GetNeutrophilCellCount()
+{
+  if (m_NeutrophilCellCount == nullptr)
+    m_NeutrophilCellCount = new SEScalarAmountPerVolume();
+  return *m_NeutrophilCellCount;
+}
+//-------------------------------------------------------------------------------
+double SEBloodChemistrySystem::GetNeutrophilCellCount(const AmountPerVolumeUnit& unit) const
+{
+  if (m_NeutrophilCellCount == nullptr)
+    return SEScalar::dNaN();
+  return m_NeutrophilCellCount->GetValue(unit);
 }
 //-------------------------------------------------------------------------------
 
@@ -1036,6 +1113,28 @@ double SEBloodChemistrySystem::GetVolumeFractionNeutralPhospholipidInPlasma() co
 }
 //-------------------------------------------------------------------------------
 
+bool SEBloodChemistrySystem::HasViralLoad() const
+{
+  return m_ViralLoad == nullptr ? false : m_ViralLoad->IsValid();
+}
+//-------------------------------------------------------------------------------
+SEScalarAmountPerVolume& SEBloodChemistrySystem::GetViralLoad()
+{
+  if (m_ViralLoad == nullptr) {
+    m_ViralLoad = new SEScalarAmountPerVolume();
+  }
+  return *m_ViralLoad;
+}
+//-------------------------------------------------------------------------------
+double SEBloodChemistrySystem::GetViralLoad() const
+{
+  if (m_ViralLoad == nullptr) {
+    return SEScalar::dNaN();
+  }
+  return m_ViralLoad->GetValue();
+}
+//-------------------------------------------------------------------------------
+
 bool SEBloodChemistrySystem::HasVolumeFractionNeutralLipidInPlasma() const
 {
   return m_VolumeFractionNeutralLipidInPlasma == nullptr ? false : m_VolumeFractionNeutralLipidInPlasma->IsValid();
@@ -1284,6 +1383,8 @@ Tree<const char*> SEBloodChemistrySystem::GetPhysiologyRequestGraph() const
     .emplace_back(idCarbonMonoxideSaturation)
     .emplace_back(idHematocrit)
     .emplace_back(idHemoglobinContent)
+    .emplace_back(idLymphocyteCellCount)
+    .emplace_back(idNeutrophilCellCount)
     .emplace_back(idOxygenSaturation)
     .emplace_back(idPhosphate)
     .emplace_back(idPlasmaVolume)
@@ -1297,12 +1398,14 @@ Tree<const char*> SEBloodChemistrySystem::GetPhysiologyRequestGraph() const
     .emplace_back(idVenousBloodPH)
     .emplace_back(idVolumeFractionNeutralPhospholipidInPlasma)
     .emplace_back(idVolumeFractionNeutralLipidInPlasma)
+    .emplace_back(idWhiteBloodCellCount)
     .emplace_back(idArterialCarbonDioxidePressure)
     .emplace_back(idArterialOxygenPressure)
     .emplace_back(idPulmonaryArterialCarbonDioxidePressure)
     .emplace_back(idPulmonaryArterialOxygenPressure)
     .emplace_back(idPulmonaryVenousCarbonDioxidePressure)
     .emplace_back(idPulmonaryVenousOxygenPressure)
+    .emplace_back(idViralLoad)
     .emplace_back(idVenousCarbonDioxidePressure)
     .emplace_back(idVenousOxygenPressure)
     .emplace_back(GetInflammatoryResponse().GetPhysiologyRequestGraph());

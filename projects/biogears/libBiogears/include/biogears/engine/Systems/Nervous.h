@@ -57,6 +57,8 @@ public:
   //Assessments
   SEScalar& CalculateCentralNervousSOFA();
 
+  int GlasgowEstimator(double cbf);
+
 protected:
   virtual void Unload(CDM::BioGearsNervousSystemData& data) const;
 

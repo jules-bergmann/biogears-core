@@ -26,6 +26,7 @@ specific language governing permissions and limitations under the License.
 #include <biogears/cdm/patient/actions/SEChestOcclusiveDressing.h>
 #include <biogears/cdm/patient/actions/SEConsciousRespiration.h>
 #include <biogears/cdm/patient/actions/SEConsumeNutrients.h>
+#include <biogears/cdm/patient/actions/SEEbola.h>
 #include <biogears/cdm/patient/actions/SEEscharotomy.h>
 #include <biogears/cdm/patient/actions/SEExercise.h>
 #include <biogears/cdm/patient/actions/SEHemorrhage.h>
@@ -38,6 +39,7 @@ specific language governing permissions and limitations under the License.
 #include <biogears/cdm/patient/actions/SEPatientAssessmentRequest.h>
 #include <biogears/cdm/patient/actions/SEPericardialEffusion.h>
 #include <biogears/cdm/patient/actions/SEPulmonaryShunt.h>
+#include <biogears/cdm/patient/actions/SERadiationAbsorbedDose.h>
 #include <biogears/cdm/patient/actions/SESleep.h>
 #include <biogears/cdm/patient/actions/SESubstanceBolus.h>
 #include <biogears/cdm/patient/actions/SESubstanceCompoundInfusion.h>
@@ -246,7 +248,12 @@ SEAction* SEAction::newFromBind(const CDM::ActionData& data, SESubstanceManager&
       a->Load(*consumeData);
       return a;
     }
-
+    CDM::EbolaData* ebolaData = dynamic_cast<CDM::EbolaData*>(action);
+    if (ebolaData != nullptr) {
+      SEEbola* ebola = new SEEbola();
+      ebola->Load(*ebolaData);
+      return ebola;
+    }
     CDM::EscharotomyData* escharotomyData = dynamic_cast<CDM::EscharotomyData*>(action);
     if (escharotomyData != nullptr) {
       SEEscharotomy* escharotomy = new SEEscharotomy();
@@ -328,6 +335,13 @@ SEAction* SEAction::newFromBind(const CDM::ActionData& data, SESubstanceManager&
     if (pneumoData != nullptr) {
       SETensionPneumothorax* a = new SETensionPneumothorax();
       a->Load(*pneumoData);
+      return a;
+    }
+
+    CDM::RadiationAbsorbedDoseData* radabs = dynamic_cast<CDM::RadiationAbsorbedDoseData*>(action);
+    if (radabs != nullptr) {
+      SERadiationAbsorbedDose* a = new SERadiationAbsorbedDose();
+      a->Load(*radabs);
       return a;
     }
 

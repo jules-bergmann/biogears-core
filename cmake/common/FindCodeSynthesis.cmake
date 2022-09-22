@@ -175,8 +175,7 @@ function(REGISTER_XSD_FILE _filepath )
   set(_project ${_l_PROJECT} )
   set(_component ${_l_COMPONENT} )
   set(_resource_path ${_l_RESOURCE_FOLDER} )
-
-  if (NOT _l_WORKING_DIR)
+if (NOT _l_WORKING_DIR)
     set(_l_WORKING_DIR ${PROJECT_SOURCE_DIR}/share/xsd/)
   endif()
   if (NOT _l_TARGETS )
@@ -191,7 +190,7 @@ function(REGISTER_XSD_FILE _filepath )
     execute_process( 
                      WORKING_DIRECTORY ${_l_WORKING_DIR}
                      COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/${_project}/${_component} 
-                     COMMAND ${CMAKE_COMMAND} -E env  LD_LIBRARY_PATH=${${ROOT_PROJECT_NAME}_EXTERNAL}/lib ${CodeSynthesis_EXECUTABLE} cxx-tree ${CodeSynthesis_FLAGS} 
+                     COMMAND ${CMAKE_COMMAND} -E env  LD_LIBRARY_PATH=${Biogears_EXTERNAL}/lib ${CodeSynthesis_EXECUTABLE} cxx-tree ${CodeSynthesis_FLAGS} 
                      ERROR_VARIABLE XSD_ERROR
                    )
     if(XSD_ERROR )
@@ -222,7 +221,7 @@ function(REGISTER_XSD_FILE _filepath )
 
   add_custom_command( OUTPUT  ${CMAKE_CURRENT_BINARY_DIR}/${_project}/${_component}/${_schema}.hxx ${CMAKE_CURRENT_BINARY_DIR}/${_project}/${_component}/${_schema}.cxx ${_l_OUTPUTS}
                       WORKING_DIRECTORY ${_l_WORKING_DIR}
-                      COMMAND ${CMAKE_COMMAND} -E env LD_LIBRARY_PATH=${${ROOT_PROJECT_NAME}_EXTERNAL}/lib ${CodeSynthesis_EXECUTABLE} cxx-tree --show-sloc ${CodeSynthesis_FLAGS} 
+                      COMMAND ${CMAKE_COMMAND} -E env LD_LIBRARY_PATH=${Biogears_EXTERNAL}/lib ${CodeSynthesis_EXECUTABLE} cxx-tree --show-sloc ${CodeSynthesis_FLAGS} 
                       DEPENDS ${_filepath}
                       DEPENDS ${CodeSynthesis_EXECUTABLE} ${_config_file}
                       DEPENDS ${_l_DEPENDS}

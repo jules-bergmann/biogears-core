@@ -1832,7 +1832,7 @@ void Respiratory::CalculateVitalSigns()
       subQ->GetSubstance().GetEndTidalPressure().Set(subQ->GetPartialPressure());
     }
     GetEndTidalCarbonDioxideFraction().Set(m_data.GetSubstances().GetCO2().GetEndTidalFraction());
-    GetEndTidalCarbonDioxidePressure().Set(m_LeftAlveoliCO2->GetPartialPressure());
+    GetEndTidalCarbonDioxidePressure().Set(m_Lungs->GetSubstanceQuantity(m_data.GetSubstances().GetCO2())->GetPartialPressure());
 
     // Calculate Ventilationss
     GetTotalAlveolarVentilation().SetValue(AlveoliDeltaVolume_L * RespirationRate_Per_min, VolumePerTimeUnit::L_Per_min);
@@ -1889,6 +1889,11 @@ void Respiratory::CalculateVitalSigns()
 
   //at the end check to see if they are not breathing and update respiration rate, dont update if anesthesia machine is connected
   if (m_bNotBreathing && m_data.GetAirwayMode() == CDM::enumBioGearsAirwayMode::Free) {
+    GetRespirationRate().SetValue(0.0, FrequencyUnit::Per_min);
+  }
+
+    //there is an issue with the driver logic where the elapsed breathing time doesn't update when you set anesthesia to zero
+  if (m_data.GetAirwayMode() == CDM::enumBioGearsAirwayMode::AnesthesiaMachine && m_data.GetAnesthesiaMachine().GetRespiratoryRate().GetValue() == 0) {
     GetRespirationRate().SetValue(0.0, FrequencyUnit::Per_min);
   }
 
