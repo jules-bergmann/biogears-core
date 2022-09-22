@@ -11,7 +11,18 @@
 #  - local install of cmake, ninja
 #  - external dependencies.  E.g eigen, etc
 #
-aamv=/home/idies/workspace/Storage/jbergma8/aamv
+# cores -- number of jobs/cores to run in parallel
+#  - default to 4 to be nice to crunchr
+#
+if [[ $(hostname) -eq 'mrphpch1' ]]; then
+  aamv=/home/jbergma8/dev/projects/biogears-deps
+  aamv_prefix=$aamv
+  cores=16
+else
+  aamv=/home/idies/workspace/Storage/jbergma8/aamv
+  aamv_prefix=$aamv/ref/external
+  cores=4
+fi
 
 #
 # build-type
@@ -21,10 +32,6 @@ aamv=/home/idies/workspace/Storage/jbergma8/aamv
 build_type=Release
 
 #
-# cores -- number of jobs/cores to run in parallel
-#  - default to 4 to be nice to crunchr
-#
-cores=4
 
 
 
@@ -34,7 +41,7 @@ dry=''
 cmake=cmake
 
 OPTS=""
-LONGOPTS=built-type:,config,make,dry
+LONGOPTS=build-type:,cores:,config,make,dry
 ! PARSED=$(getopt --options=$OPTS --longoptions=$LONGOPTS --name "$0" -- "$@")
 if [[ ${PIPESTATUS[0]} -ne 0 ]]; then
   echo 'getopt error'
@@ -82,7 +89,7 @@ echo "count: $#"
 if [[ $do_config -eq 1 ]]; then
   $dry cmake -G "Ninja"					\
 	-DCMAKE_INSTALL_PREFIX=$aamv/ref/install	\
-	-DCMAKE_PREFIX_PATH=$aamv/ref/external		\
+	-DCMAKE_PREFIX_PATH=$aamv_prefix		\
 	-DCMAKE_BUILD_TYPE=$build_type			\
 	-DBiogears_BUILD_JAVATOOLS=OFF			\
 	-DBiogears_BUILD_HOWTOS=ON			\
@@ -96,5 +103,5 @@ if [[ $do_make -eq 1 ]]; then
     target=$@
   fi
   echo "make target: $target"
-  $dry cmake --build . --config Release --parallel $cores --target $target 
+  $dry cmake --build . --config $build_type --parallel $cores --target $target 
 fi
